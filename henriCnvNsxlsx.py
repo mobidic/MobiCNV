@@ -298,12 +298,12 @@ os.system("sort -k1.4n -k2,2n -k3,3n cnv_analysis_ChrX.txt > cnv_analysis_ChrX_s
 
 ###########
 panel = open("panel.txt", 'r')
-panelreader = csv.DictReader(panel, delimiter='\t')
+# panelreader = csv.DictReader(panel, delimiter='\t')
+
 liste_panel = []
-for elt in panelreader :
-	liste_panel.append(elt)
-# for elt in panelreader:
-# 	print (elt)
+for gene in panel :
+	liste_panel.append(gene)
+
 ###########
 
 
@@ -345,71 +345,85 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	regex_ratio = re.compile(r'(.*)_ratio$')
 	regex_noCNV = re.compile(r'no CNV')
 	regex_region = re.compile(r'RegionID')
-	for column in column_list :
+	for column in column_list:
 		for item in range(len(column)):
-			for elt in liste_panel :
-				if regex_region.search(column[0]):
-					if (item > 0) :
-						if str(elt) in str(column[item]) :
-							print (column[item])
+			if regex_region.search(column[0]):
+				for gene in liste_panel:
+					if str(gene) in column :
+						print (column[item])
 
-			if regex_ratio.search(column[0]):
-				if (item > 0) :
-					if(float(column[item]) <= threshold_del_hmz):
-						worksheet.write(item, i , column[item],style1)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					elif(float(column[item]) <= threshold_del_htz):
-						worksheet.write(item, i, column[item],style2)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					elif(float(column[item]) <= threshold_dup_htz):
-						worksheet.write(item, i, column[item], style5)
-					elif(float(column[item]) <= threshold_dup_hmz):
-						worksheet.write(item, i, column[item],style3)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					else :
-						worksheet.write(item, i, column[item],style4)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-				else:
-					worksheet.write(item, i, column[item], style5)
-			else:
-				worksheet.write(item,i,column[item])
-			if (item == 0):
-				summary.write(item,i,column[item], style5)
-		i+=1
-	i = 0
-	uniq_interesting = list(set(interesting))
-	for column in column_list2:
-		j = 1
-		for item in range(len(column)):
-			if (item in uniq_interesting):
-				if regex_ratio.search(column[0]):
-					if(item > 0):
-						if(float(column[item]) <= threshold_del_hmz):
-							summary.write(j, i , column[item],style1)
-						elif(float(column[item]) <= threshold_del_htz):
-							summary.write(j, i, column[item],style2)
-						elif(float(column[item]) <= threshold_dup_htz):
-							summary.write(j, i, column[item], style5)
-						elif(float(column[item]) <= threshold_dup_hmz):
-							summary.write(j, i, column[item],style3)
-						else :
-							summary.write(j, i, column[item],style4)
-					else:
-						summary.write(j, i, column[item], style5)
-				else:
-					summary.write(j,i,column[item])
-				j+=1
-		i+=1
-	worksheet.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
-	summary.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
+				# if (item > 0):
+
+					# if (item > 0) :
+					# 	if str(elt) in str(column[item]) :
+					# 		print (column[item])
+
+
+
+
+
+
+
+
+
+
+	# 		if regex_ratio.search(column[0]):
+	# 			if (item > 0) :
+	# 				if(float(column[item]) <= threshold_del_hmz):
+	# 					worksheet.write(item, i , column[item],style1)
+	# 					for k in range(item-1,item+2):
+	# 						if (k > 0):
+	# 							interesting.append(k)
+	# 				elif(float(column[item]) <= threshold_del_htz):
+	# 					worksheet.write(item, i, column[item],style2)
+	# 					for k in range(item-1,item+2):
+	# 						if (k > 0):
+	# 							interesting.append(k)
+	# 				elif(float(column[item]) <= threshold_dup_htz):
+	# 					worksheet.write(item, i, column[item], style5)
+	# 				elif(float(column[item]) <= threshold_dup_hmz):
+	# 					worksheet.write(item, i, column[item],style3)
+	# 					for k in range(item-1,item+2):
+	# 						if (k > 0):
+	# 							interesting.append(k)
+	# 				else :
+	# 					worksheet.write(item, i, column[item],style4)
+	# 					for k in range(item-1,item+2):
+	# 						if (k > 0):
+	# 							interesting.append(k)
+	# 			else:
+	# 				worksheet.write(item, i, column[item], style5)
+	# 		else:
+	# 			worksheet.write(item,i,column[item])
+	# 		if (item == 0):
+	# 			summary.write(item,i,column[item], style5)
+	# 	i+=1
+	# i = 0
+	# uniq_interesting = list(set(interesting))
+	# for column in column_list2:
+	# 	j = 1
+	# 	for item in range(len(column)):
+	# 		if (item in uniq_interesting):
+	# 			if regex_ratio.search(column[0]):
+	# 				if(item > 0):
+	# 					if(float(column[item]) <= threshold_del_hmz):
+	# 						summary.write(j, i , column[item],style1)
+	# 					elif(float(column[item]) <= threshold_del_htz):
+	# 						summary.write(j, i, column[item],style2)
+	# 					elif(float(column[item]) <= threshold_dup_htz):
+	# 						summary.write(j, i, column[item], style5)
+	# 					elif(float(column[item]) <= threshold_dup_hmz):
+	# 						summary.write(j, i, column[item],style3)
+	# 					else :
+	# 						summary.write(j, i, column[item],style4)
+	# 				else:
+	# 					summary.write(j, i, column[item], style5)
+	# 			else:
+	# 				summary.write(j,i,column[item])
+	# 			j+=1
+	# 	i+=1
+	# worksheet.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
+	# summary.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
 #worksheet for autosomes
 writing_total('Autosomes','cnv_analysis_sorted.txt', 0.3, 0.7, 1.3, 1.7)
 #worksheet for ChrX
