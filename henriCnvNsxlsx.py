@@ -454,3 +454,26 @@ writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7,
 workbook.close()
 #remove temporary files
 os.system("rm cnv_analysis.txt cnv_analysis_sorted.txt cnv_analysis_ChrX.txt cnv_analysis_ChrX_sorted.txt")
+
+################################################################################
+#
+# CLASS
+#
+################################################################################
+class LoggerAction(argparse.Action):
+    """
+    @summary: Manages logger level parameters (The value "INFO" becomes logging.info and so on).
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        log_level = None
+        if values == "DEBUG":
+            log_level = logging.DEBUG
+        elif values == "INFO":
+            log_level = logging.INFO
+        elif values == "WARNING":
+            log_level = logging.WARNING
+        elif values == "ERROR":
+            log_level = logging.ERROR
+        elif values == "CRITICAL":
+            log_level = logging.CRITICAL
+        setattr(namespace, self.dest, log_level)
