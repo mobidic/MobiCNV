@@ -91,16 +91,20 @@ for i in filelist:
 
 #############
 
-# Itération sur le dictionnaire patient pour calculer la moyenne par  patient
+#  Iterating on dict_patients to calculate the mean by patient
 
-# def sample_mean(dico):
-# 	for sample_name in dict_patients:
+def sample_mean(dico):
+	for sample_name in dico :
+			dict_patients[sample_name]["sample_mean"] = dict_patients[sample_name]["sum_patient"]/ counter
 
-for sample_name in dict_patients:
-		dict_patients[sample_name]["moyenne_patient"] = dict_patients[sample_name]["sum_patient"]/ counter
-# FOR X
-for sample_name in dict_patients_ChrX:
-		dict_patients_ChrX[sample_name]["moyenne_patient"] = dict_patients_ChrX[sample_name]["sum_patient"]/ counter_ChrX
+sample_mean(dict_patients)
+sample_mean(dict_patients_ChrX)
+
+# for sample_name in dict_patients:
+# 		dict_patients[sample_name]["sample_mean"] = dict_patients[sample_name]["sum_patient"]/ counter
+# # FOR X
+# for sample_name in dict_patients_ChrX:
+# 		dict_patients_ChrX[sample_name]["sample_mean"] = dict_patients_ChrX[sample_name]["sum_patient"]/ counter_ChrX
 
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
@@ -171,14 +175,14 @@ for sample_name in dict_patients_ChrX:
 
 for coordinate in dict_regions :
 	for sample_name in dict_regions[coordinate]:
-		patient_normalise = dict_regions[coordinate][sample_name]['brut'] / dict_patients[sample_name]["moyenne_patient"]
+		patient_normalise = dict_regions[coordinate][sample_name]['brut'] / dict_patients[sample_name]["sample_mean"]
 		dict_regions[coordinate][sample_name]["patient_normalise"] = float(patient_normalise)
 
 # FOR X
 
 for coordinate in dict_regions_ChrX :
 	for sample_name in dict_regions_ChrX[coordinate]:
-		patient_normalise = dict_regions_ChrX[coordinate][sample_name]['brut'] / dict_patients_ChrX[sample_name]["moyenne_patient"]
+		patient_normalise = dict_regions_ChrX[coordinate][sample_name]['brut'] / dict_patients_ChrX[sample_name]["sample_mean"]
 		dict_regions_ChrX[coordinate][sample_name]["patient_normalise"] = float(patient_normalise)
 
 #############
