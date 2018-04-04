@@ -361,31 +361,11 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	regex_region = re.compile(r'RegionID')
 	for column in column_list:
 		for item in range(len(column)):
-			# if regex_region.search(column[0]):
-			# 	for gene in liste_panel:
-			# 		if str(gene) in column :
-			# 			print (column[item])
-			#
-			# 	# if (item > 0):
-			#
-			# 		# if (item > 0) :
-			# 		# 	if str(elt) in str(column[item]) :
-			# 		# 		print (column[item])
-			#
-			#
-			#
-			#
-			#
-			#
-			#
-			#
-			#
 			if regex_region.search(column[0]):
 				for gene in liste_panel:
 					if re.compile(r'.*' + gene + '.*').search(column[item]) :
 						print (column[item])
 						gene4interest.append(item)
-
 
 			if regex_ratio.search(column[0]):
 				if (item > 0) :
