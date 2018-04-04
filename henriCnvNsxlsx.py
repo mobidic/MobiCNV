@@ -66,26 +66,26 @@ for i in filelist:
 						dict_patients[baseName] = {"sum_patient": float(line[4])}
 					else:
 						dict_patients[baseName]["sum_patient"] += float(line[4])
-					# création dictionnaire avec les valeurs bruts
+					# création dictionnaire avec les valeurs raws
 					coordinate = (line[0],line[1],line[2], line[3])
 					if coordinate not in dict_regions :
 						counter += 1
-						dict_regions[coordinate] = {baseName : {"brut" : float(line[4])}}
+						dict_regions[coordinate] = {baseName : {"raw" : float(line[4])}}
 					else :
-						dict_regions[coordinate][baseName] = {"brut" : float(line[4])}
+						dict_regions[coordinate][baseName] = {"raw" : float(line[4])}
 				else :
 					if not re.match(expression, line[0]) and line[0] == "chrX":
 						if(baseName not in dict_patients_ChrX):
 							dict_patients_ChrX[baseName] = {"sum_patient": float(line[4])}
 						else:
 							dict_patients_ChrX[baseName]["sum_patient"] += float(line[4])
-						# création dictionnaire avec les valeurs bruts
+						# création dictionnaire avec les valeurs raws
 						coordinate = (line[0],line[1],line[2],line[3])
 						if coordinate not in dict_regions_ChrX :
 							counter_ChrX += 1
-							dict_regions_ChrX[coordinate] = {baseName : {"brut" : float(line[4])}}
+							dict_regions_ChrX[coordinate] = {baseName : {"raw" : float(line[4])}}
 						else :
-							dict_regions_ChrX[coordinate][baseName] = {"brut" : float(line[4])}
+							dict_regions_ChrX[coordinate][baseName] = {"raw" : float(line[4])}
 # faire pareil pour ChrY
 #############
 
@@ -95,61 +95,49 @@ for i in filelist:
 
 def sample_mean(dico):
 	for sample_name in dico :
-			dict_patients[sample_name]["sample_mean"] = dict_patients[sample_name]["sum_patient"]/ counter
+			dico[sample_name]["sample_mean"] = dico[sample_name]["sum_patient"]/ counter
 
 sample_mean(dict_patients)
 sample_mean(dict_patients_ChrX)
 
-# for sample_name in dict_patients:
-# 		dict_patients[sample_name]["sample_mean"] = dict_patients[sample_name]["sum_patient"]/ counter
-# # FOR X
-# for sample_name in dict_patients_ChrX:
-# 		dict_patients_ChrX[sample_name]["sample_mean"] = dict_patients_ChrX[sample_name]["sum_patient"]/ counter_ChrX
-
 #############
-# Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
-for coordinate in dict_regions :
-	for sample_name in dict_regions[coordinate]:
-		total = 0
-		sample_number = 0
-		for sample_other in dict_regions[coordinate]:
-			if sample_other != sample_name:
-				total += dict_regions[coordinate][sample_other]['brut']
-				sample_number +=1
-		moyenne_exon = total / sample_number
-		dict_regions[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
+# Iterating on dict_patients to calculate mean by exon and normalized_exon values (raw/mean by patient)
 
-# FOR X
-for coordinate in dict_regions_ChrX :
-	for sample_name in dict_regions_ChrX[coordinate]:
-		total = 0
-		sample_number = 0
-		for sample_other in dict_regions_ChrX[coordinate]:
-			if sample_other != sample_name:
-				total += dict_regions_ChrX[coordinate][sample_other]['brut']
-				sample_number +=1
-		moyenne_exon = total / sample_number
-		dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
+def mean_by_exon_and_normalized(dico):
+	for coordinate in dico :
+		for sample_name in dico[coordinate]:
+			total = 0
+			sample_number = 0
+			for sample_other in dico[coordinate]:
+				if sample_other != sample_name:
+					total += dico[coordinate][sample_other]['raw']
+					sample_number +=1
+			exon_mean = total / sample_number
+			dico[coordinate][sample_name]["exon_mean"] = float(exon_mean)
+
+mean_by_exon_and_normalized(dict_regions)
+mean_by_exon_and_normalized(dict_regions_ChrX)
 
 #############
 # Itération sur le dictionnaire régions pour calculer la somme moyenne par patient
 # sauf pour les exons du patient - Somme ajoutée dans le dict patients
-for sample_name in dict_patients:
-	dict_patients[sample_name]["somme_moyenne_exon"] = 0
-	for coordinate in dict_regions :
-		dict_patients[sample_name]["somme_moyenne_exon"] += dict_regions[coordinate][sample_name]["moyenne_exon"]
 
 for sample_name in dict_patients:
-	dict_patients[sample_name]["total_mean_sans_le_patient"] = dict_patients [sample_name]["somme_moyenne_exon"] / counter
+	dict_patients[sample_name]["somme_exon_mean"] = 0
+	for coordinate in dict_regions :
+		dict_patients[sample_name]["somme_exon_mean"] += dict_regions[coordinate][sample_name]["exon_mean"]
+
+for sample_name in dict_patients:
+	dict_patients[sample_name]["total_mean_sans_le_patient"] = dict_patients [sample_name]["somme_exon_mean"] / counter
 
 # FOR X
 for sample_name in dict_patients_ChrX:
-	dict_patients_ChrX[sample_name]["somme_moyenne_exon"] = 0
+	dict_patients_ChrX[sample_name]["somme_exon_mean"] = 0
 	for coordinate in dict_regions_ChrX :
-		dict_patients_ChrX[sample_name]["somme_moyenne_exon"] += dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"]
+		dict_patients_ChrX[sample_name]["somme_exon_mean"] += dict_regions_ChrX[coordinate][sample_name]["exon_mean"]
 
 for sample_name in dict_patients_ChrX:
-	dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"] = dict_patients_ChrX [sample_name]["somme_moyenne_exon"] / counter_ChrX
+	dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"] = dict_patients_ChrX [sample_name]["somme_exon_mean"] / counter_ChrX
 
 #############
 # Itération sur le dictionnaire régions pour ajouter la valeur "exon_normalise"
@@ -160,13 +148,13 @@ for sample_name in dict_patients_ChrX:
 #@@@@@@@@@@@@@@@@@@@
 for sample_name in dict_patients:
 	for coordinate in dict_regions :
-		dict_regions [coordinate][sample_name]["exon_normalise"] = dict_regions[coordinate][sample_name]["moyenne_exon"] / dict_patients[sample_name]["total_mean_sans_le_patient"]
+		dict_regions [coordinate][sample_name]["exon_normalise"] = dict_regions[coordinate][sample_name]["exon_mean"] / dict_patients[sample_name]["total_mean_sans_le_patient"]
 
 # FOR X
 
 for sample_name in dict_patients_ChrX:
 	for coordinate in dict_regions_ChrX :
-		dict_regions_ChrX [coordinate][sample_name]["exon_normalise"] = dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] / dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"]
+		dict_regions_ChrX [coordinate][sample_name]["exon_normalise"] = dict_regions_ChrX[coordinate][sample_name]["exon_mean"] / dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"]
 
 
 
@@ -175,14 +163,14 @@ for sample_name in dict_patients_ChrX:
 
 for coordinate in dict_regions :
 	for sample_name in dict_regions[coordinate]:
-		patient_normalise = dict_regions[coordinate][sample_name]['brut'] / dict_patients[sample_name]["sample_mean"]
+		patient_normalise = dict_regions[coordinate][sample_name]['raw'] / dict_patients[sample_name]["sample_mean"]
 		dict_regions[coordinate][sample_name]["patient_normalise"] = float(patient_normalise)
 
 # FOR X
 
 for coordinate in dict_regions_ChrX :
 	for sample_name in dict_regions_ChrX[coordinate]:
-		patient_normalise = dict_regions_ChrX[coordinate][sample_name]['brut'] / dict_patients_ChrX[sample_name]["sample_mean"]
+		patient_normalise = dict_regions_ChrX[coordinate][sample_name]['raw'] / dict_patients_ChrX[sample_name]["sample_mean"]
 		dict_regions_ChrX[coordinate][sample_name]["patient_normalise"] = float(patient_normalise)
 
 #############
@@ -213,7 +201,7 @@ with open('cnv_analysis.txt', 'w') as csv_file:
 	header = "Chr\tStart\tEnd\tRegionID\t"
 	for coordinate in dict_regions :
 		for sample_name in dict_regions[coordinate]:
-			header += str(sample_name) + "_brut" + "\t"
+			header += str(sample_name) + "_raw" + "\t"
 		for sample_name in dict_regions[coordinate]:
 			header += str(sample_name) + "_moy_exon" + "\t"
 		for sample_name in dict_regions[coordinate]:
@@ -232,9 +220,9 @@ with open('cnv_analysis.txt', 'w') as csv_file:
 			str(coordinate[3]) + "\t"
 			)
 		for sample_name in dict_regions[coordinate] :
-			csv_file.write(str(dict_regions[coordinate][sample_name]["brut"]) + "\t")
+			csv_file.write(str(dict_regions[coordinate][sample_name]["raw"]) + "\t")
 		for sample_name in dict_regions[coordinate] :
-			csv_file.write(str(round(dict_regions[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
+			csv_file.write(str(round(dict_regions[coordinate][sample_name]["exon_mean"], 2)) + "\t")
 		for sample_name in dict_regions[coordinate] :
 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["patient_normalise"],2)) + "\t")
 		for sample_name in dict_regions[coordinate] :
@@ -248,7 +236,7 @@ with open('cnv_analysis_ChrX.txt', 'w') as csv_file:
 	header = "Chr\tStart\tend\tRegionID\t"
 	for coordinate in dict_regions_ChrX :
 		for sample_name in dict_regions_ChrX[coordinate]:
-			header += str(sample_name) + "_brut" + "\t"
+			header += str(sample_name) + "_raw" + "\t"
 		for sample_name in dict_regions_ChrX[coordinate]:
 			header += str(sample_name) + "_moy_exon" + "\t"
 		for sample_name in dict_regions_ChrX[coordinate]:
@@ -267,9 +255,9 @@ with open('cnv_analysis_ChrX.txt', 'w') as csv_file:
 			str(coordinate[3]) + "\t"
 			)
 		for sample_name in dict_regions_ChrX[coordinate] :
-			csv_file.write(str(dict_regions_ChrX[coordinate][sample_name]["brut"]) + "\t")
+			csv_file.write(str(dict_regions_ChrX[coordinate][sample_name]["raw"]) + "\t")
 		for sample_name in dict_regions_ChrX[coordinate] :
-			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
+			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["exon_mean"], 2)) + "\t")
 		for sample_name in dict_regions_ChrX[coordinate] :
 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["patient_normalise"],2)) + "\t")
 		for sample_name in dict_regions_ChrX[coordinate] :
