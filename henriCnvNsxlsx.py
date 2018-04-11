@@ -55,19 +55,19 @@ counter_ChrX = 0
 print("\nFiles that will be considered:\n")
 
 
-def build_dict(baseName, line, counter):
-	if(baseName not in dict_patients):
-						dict_patients[baseName] = {"sum_patient": float(line[4])}
+def build_dict(baseName, line, counter, dict_r, dict_p):
+	if(baseName not in dict_p):
+		dict_p[baseName] = {"sum_patient": float(line[4])}
 	else:
-		dict_patients[baseName]["sum_patient"] += float(line[4])
+		dict_p[baseName]["sum_patient"] += float(line[4])
 	# création dictionnaire avec les valeurs bruts
 	coordinate = (line[0],line[1],line[2], line[3])
-	if coordinate not in dict_regions :
+	if coordinate not in dict_r :
 		counter += 1
-		dict_regions[coordinate] = {baseName : {"brut" : float(line[4])}}
+		dict_r[coordinate] = {baseName : {"brut" : float(line[4])}}
 	else :
-		dict_regions[coordinate][baseName] = {"brut" : float(line[4])}	
-	return(counter)
+		dict_r[coordinate][baseName] = {"brut" : float(line[4])}	
+	return(counter, dict_r, dict_p)
 
 #############
 for i in filelist:
@@ -93,7 +93,7 @@ for i in filelist:
 				line = [w.replace(',', '.') for w in line]
 				expression = r'^.*#.*$' # remove header
 				if not re.match(expression, line[0]) and line[0] != "chrX" and line[0] != "chrY":
-					counter = build_dict(baseName, line, counter)
+					(counter, dict_regions, dict_patients) = build_dict(baseName, line, counter, dict_regions, dict_patients)
 					#création moyenne par patient
 					#if(baseName not in dict_patients):
 					#	dict_patients[baseName] = {"sum_patient": float(line[4])}
@@ -108,7 +108,7 @@ for i in filelist:
 					#	dict_regions[coordinate][baseName] = {"brut" : float(line[4])}
 				else :
 					if not re.match(expression, line[0]) and line[0] == "chrX":
-						counter = build_dict(baseName, line, counter)
+						(counter_ChrX, dict_regions_ChrX, dict_patients_ChrX) = build_dict(baseName, line, counter_ChrX, dict_regions_ChrX, dict_patients_ChrX)
 						# if(baseName not in dict_patients_ChrX):
 						# 	dict_patients_ChrX[baseName] = {"sum_patient": float(line[4])}
 						# else:
@@ -138,34 +138,56 @@ for sample_name in dict_patients_ChrX:
 
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
-for coordinate in dict_regions :
-	for sample_name in dict_regions[coordinate]:
-		total = 0
-		full_total = 0
-		sample_number = 0
-		for sample_other in dict_regions[coordinate]:
-			if sample_other != sample_name:
-				total += dict_regions[coordinate][sample_other]['brut']
-				sample_number +=1
-			full_total += dict_regions[coordinate][sample_other]['brut']
-		moyenne_exon = total / sample_number
-		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
-		dict_regions[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
 
-# FOR X
-for coordinate in dict_regions_ChrX :
-	for sample_name in dict_regions_ChrX[coordinate]:
-		total = 0
-		full_total = 0
-		sample_number = 0
-		for sample_other in dict_regions_ChrX[coordinate]:
-			if sample_other != sample_name:
-				total += dict_regions_ChrX[coordinate][sample_other]['brut']
-				sample_number +=1
-			full_total += dict_regions_ChrX[coordinate][sample_other]['brut']
-		moyenne_exon = total / sample_number
-		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
-		dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
+def exon_mean(dict_r, dict_m):
+	for coordinate in dict_r :
+		for sample_name in dict_r[coordinate]:
+			total = 0
+			full_total = 0
+			sample_number = 0
+			for sample_other in dict_r[coordinate]:
+				if sample_other != sample_name:
+					total += dict_r[coordinate][sample_other]['brut']
+					sample_number +=1
+				full_total += dict_r[coordinate][sample_other]['brut']
+			#moyenne_exon = total / sample_number
+			dict_m[coordinate] = {"exon_mean_doc": float(full_total / (sample_number+1))}
+			dict_r[coordinate][sample_name]["moyenne_exon"] = float(total / sample_number)
+	return(dict_r, dict_m)
+
+(dict_regions, dict_mean) = exon_mean(dict_regions, dict_mean)
+(dict_regions_ChrX, dict_mean) = exon_mean(dict_regions_ChrX, dict_mean)
+
+#pp.pprint(dict_regions)
+
+# for coordinate in dict_regions :
+# 	for sample_name in dict_regions[coordinate]:
+# 		total = 0
+# 		full_total = 0
+# 		sample_number = 0
+# 		for sample_other in dict_regions[coordinate]:
+# 			if sample_other != sample_name:
+# 				total += dict_regions[coordinate][sample_other]['brut']
+# 				sample_number +=1
+# 			full_total += dict_regions[coordinate][sample_other]['brut']
+# 		moyenne_exon = total / sample_number
+# 		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
+# 		dict_regions[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
+# 
+# # FOR X
+# for coordinate in dict_regions_ChrX :
+# 	for sample_name in dict_regions_ChrX[coordinate]:
+# 		total = 0
+# 		full_total = 0
+# 		sample_number = 0
+# 		for sample_other in dict_regions_ChrX[coordinate]:
+# 			if sample_other != sample_name:
+# 				total += dict_regions_ChrX[coordinate][sample_other]['brut']
+# 				sample_number +=1
+# 			full_total += dict_regions_ChrX[coordinate][sample_other]['brut']
+# 		moyenne_exon = total / sample_number
+# 		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
+# 		dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
 
 #############
 # Itération sur le dictionnaire régions pour calculer la somme moyenne par patient
@@ -174,18 +196,19 @@ for sample_name in dict_patients:
 	dict_patients[sample_name]["somme_moyenne_exon"] = 0
 	for coordinate in dict_regions :
 		dict_patients[sample_name]["somme_moyenne_exon"] += dict_regions[coordinate][sample_name]["moyenne_exon"]
-
-for sample_name in dict_patients:
 	dict_patients[sample_name]["total_mean_sans_le_patient"] = dict_patients [sample_name]["somme_moyenne_exon"] / counter
+#for sample_name in dict_patients:
+#	dict_patients[sample_name]["total_mean_sans_le_patient"] = dict_patients [sample_name]["somme_moyenne_exon"] / counter
 
 # FOR X
 for sample_name in dict_patients_ChrX:
 	dict_patients_ChrX[sample_name]["somme_moyenne_exon"] = 0
 	for coordinate in dict_regions_ChrX :
 		dict_patients_ChrX[sample_name]["somme_moyenne_exon"] += dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"]
-
-for sample_name in dict_patients_ChrX:
 	dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"] = dict_patients_ChrX [sample_name]["somme_moyenne_exon"] / counter_ChrX
+
+#for sample_name in dict_patients_ChrX:
+#	dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"] = dict_patients_ChrX [sample_name]["somme_moyenne_exon"] / counter_ChrX
 
 #############
 # Itération sur le dictionnaire régions pour ajouter la valeur "exon_normalise"
