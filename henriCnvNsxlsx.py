@@ -22,7 +22,7 @@ pp = pprint.PrettyPrinter(indent=4, depth=6)
 #added david 27/03/2018 - deal with path passed as arg
 parser = argparse.ArgumentParser(description='deal with path.')
 parser.add_argument('-p', '--path', default='.')
-parser.add_argument('-gl', '--genelist', default='')
+parser.add_argument('-g', '--genelist', default='')
 parser.add_argument('-t', '--type', default='tsv')
 parser.add_argument('-o', '--out', default='cnv_analysis_sorted.xlsx')
 args = parser.parse_args()
