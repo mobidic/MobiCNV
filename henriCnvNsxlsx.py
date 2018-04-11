@@ -12,9 +12,8 @@ import os		# for options
 import pprint   # print data structure
 import numpy as np
 import math
-#import xlwt
 import xlsxwriter
-#import xlrd
+#from operator import itemgetter
 
 # ==============================================================================
 
@@ -226,6 +225,8 @@ for coordinate in dict_regions_ChrX :
 
 #pp.pprint(dict_patients)
 #pp.pprint(dict_regions)
+#dict_regions_sorted = sorted(dict_regions, key=lambda row:(row[0],row[1]), reverse=False)
+#dict_regions_sorted = sorted(dict_regions, key=itemgetter(0,1))
 
 with open('cnv_analysis.txt', 'w') as csv_file:
 	writer = csv.writer(csv_file)
@@ -328,7 +329,6 @@ style2 = workbook.add_format({'bold': True, 'bg_color': '#FF3333', 'locked' : Tr
 style3 = workbook.add_format({'bold': True, 'bg_color': '#5EBBFF', 'locked' : True})
 style4 = workbook.add_format({'bold': True, 'bg_color': '#8F5EFF', 'locked' : True})
 style5 = workbook.add_format({'bold': True, 'locked' : True})
-style6 = workbook.add_format({'locked' : True})
 #http://xlsxwriter.readthedocs.io/example_conditional_format.html#ex-cond-format
 # Add a format. Light red fill with dark red text.
 format1 = workbook.add_format({'bg_color': '#FFC7CE',
@@ -340,12 +340,14 @@ format2 = workbook.add_format({'bg_color': '#C6EFCE',
 summary = workbook.add_worksheet('Summary')
 summary.freeze_panes(1, 5)
 summary.set_row(0, 20, style5)
-summary.set_column('A:E', 20, style5)
+summary.set_column('A:E', 15, style5)
+summary.set_column('D:D', 25)
 if (Panel != False):
 	worksheet2 = workbook.add_worksheet(str("Panel"))
 	worksheet2.freeze_panes(1, 5)
 	worksheet2.set_row(0, 20, style5)
-	worksheet2.set_column('A:E', 20, style5)
+	worksheet2.set_column('A:E', 15, style5)
+	worksheet2.set_column('D:D', 25)
 
 def add_conditionnal_format(worksheet, threshold, start, end):
 	#add a conditionnal format to raw DoC
@@ -368,7 +370,8 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	worksheet = workbook.add_worksheet(str(worksheet))
 	worksheet.freeze_panes(1, 5)
 	worksheet.set_row(0, 20, style5)
-	worksheet.set_column('A:E', 20, style5)
+	worksheet.set_column('A:E', 15, style5)
+	worksheet.set_column('D:D', 25)
 	#structure data from txt
 	f = open( str(txt_file), 'r+')
 	row_list = []
@@ -423,7 +426,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 				else:
 					worksheet.write(item, i, column[item], style5)
 			else:
-				worksheet.write(item,i,column[item], style6)
+				worksheet.write(item,i,column[item])
 			if (item == 0):
 				summary.write(item,i,column[item], style5)
 				# if panel:
@@ -453,7 +456,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 					else:
 						summary.write(j, i, column[item], style5)
 				else:
-					summary.write(j,i,column[item], style6)
+					summary.write(j,i,column[item])
 				j+=1
 		i+=1
 	
@@ -484,7 +487,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 						else:
 							worksheet2.write(l, i, column[item], style5)
 					else:
-						worksheet2.write(l,i,column[item], style6)
+						worksheet2.write(l,i,column[item])
 					l+=1
 			i+=1
 		i = 0
@@ -498,7 +501,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	return (j,l)
 
 #worksheet for autosomes
-(start1, start2) = writing_total('Autosomes','cnv_analysis_sorted.txt', 0.3, 0.7, 1.3, 1.7)
+(start1, start2) = writing_total('Autosomes','cnv_analysis.txt', 0.3, 0.7, 1.3, 1.7)
 # print (start1, start2)
 #worksheet for ChrX
 writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, start1, start2)
