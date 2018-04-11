@@ -38,6 +38,8 @@ delim = "\t"
 if Type == "csv":
 	ext = "csv"
 	delim = ","
+if Panel == '':
+	Panel = False
 
 filelist = os.listdir(Path)
 number_of_file = 0
@@ -296,7 +298,7 @@ os.system("sort -k1.4n -k2,2n -k3,3n cnv_analysis_ChrX.txt > cnv_analysis_ChrX_s
 
 
 ###########
-if Panel != '':
+if Panel != False:
 	panel = open(Panel, 'r')
 	# panelreader = csv.DictReader(panel, delimiter='\t')
 
@@ -322,11 +324,11 @@ summary = workbook.add_worksheet('Summary')
 summary.freeze_panes(1, 4)
 summary.set_row(0, 20, style5)
 summary.set_column('A:D', 20, style5)
-
-worksheet2 = workbook.add_worksheet(str("Panel"))
-worksheet2.freeze_panes(1, 4)
-worksheet2.set_row(0, 20, style5)
-worksheet2.set_column('A:D', 20, style5)
+if Panel != False:
+	worksheet2 = workbook.add_worksheet(str("Panel"))
+	worksheet2.freeze_panes(1, 4)
+	worksheet2.set_row(0, 20, style5)
+	worksheet2.set_column('A:D', 20, style5)
 
 
 def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, start1=0, start2=0):
@@ -357,7 +359,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	for column in column_list:
 		for item in range(len(column)):
 			if regex_region.search(column[0]):
-				if Panel != '':
+				if Panel != False:
 					for gene in liste_panel:
 						if re.compile(r'.*' + gene + '.*').search(column[item]) :
 							# print (column[item])
@@ -395,7 +397,8 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 			if (item == 0):
 				summary.write(item,i,column[item], style5)
 				# if panel:
-				worksheet2.write(item,i,column[item], style5)
+				if Panel != False:
+					worksheet2.write(item,i,column[item], style5)
 		i+=1
 	i = 0
 	uniq_interesting = list(set(interesting))
@@ -427,37 +430,38 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 
 
 	# part to dev
-	l=0
-	uniq_interesting = list(set(gene4interest))
-	for column in column_list3:
-		l = 0
-		if (start2 != 0 ):
-			l += start2
-		for item in range(len(column)):
-			if (item in uniq_interesting):
-				if regex_ratio.search(column[0]):
-					if(item > 0):
-						if(float(column[item]) <= threshold_del_hmz):
-							worksheet2.write(l, i , column[item],style1)
-						elif(float(column[item]) <= threshold_del_htz):
-							worksheet2.write(l, i, column[item],style2)
-						elif(float(column[item]) <= threshold_dup_htz):
+	if Panel != False:
+		l=0
+		uniq_interesting = list(set(gene4interest))
+		for column in column_list3:
+			l = 0
+			if (start2 != 0 ):
+				l += start2
+			for item in range(len(column)):
+				if (item in uniq_interesting):
+					if regex_ratio.search(column[0]):
+						if(item > 0):
+							if(float(column[item]) <= threshold_del_hmz):
+								worksheet2.write(l, i , column[item],style1)
+							elif(float(column[item]) <= threshold_del_htz):
+								worksheet2.write(l, i, column[item],style2)
+							elif(float(column[item]) <= threshold_dup_htz):
+								worksheet2.write(l, i, column[item], style5)
+							elif(float(column[item]) <= threshold_dup_hmz):
+								worksheet2.write(l, i, column[item],style3)
+							else :
+								worksheet2.write(l, i, column[item],style4)
+						else:
 							worksheet2.write(l, i, column[item], style5)
-						elif(float(column[item]) <= threshold_dup_hmz):
-							worksheet2.write(l, i, column[item],style3)
-						else :
-							worksheet2.write(l, i, column[item],style4)
 					else:
-						worksheet2.write(l, i, column[item], style5)
-				else:
-					worksheet2.write(l,i,column[item])
-				l+=1
-		i+=1
-	i = 0
+						worksheet2.write(l,i,column[item])
+					l+=1
+			i+=1
+		i = 0
+		worksheet2.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
 	worksheet.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
 	summary.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
-	# if panel:
-	worksheet2.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
+		
 	return (j,l)
 #worksheet for autosomes
 (start1, start2) = writing_total('Autosomes','cnv_analysis_sorted.txt', 0.3, 0.7, 1.3, 1.7)
