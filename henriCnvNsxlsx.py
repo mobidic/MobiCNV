@@ -53,6 +53,22 @@ dict_patients_ChrX = {}
 total_mean_ChrX = 0
 counter_ChrX = 0
 print("\nFiles that will be considered:\n")
+
+
+def build_dict(baseName, line, counter):
+	if(baseName not in dict_patients):
+						dict_patients[baseName] = {"sum_patient": float(line[4])}
+	else:
+		dict_patients[baseName]["sum_patient"] += float(line[4])
+	# création dictionnaire avec les valeurs bruts
+	coordinate = (line[0],line[1],line[2], line[3])
+	if coordinate not in dict_regions :
+		counter += 1
+		dict_regions[coordinate] = {baseName : {"brut" : float(line[4])}}
+	else :
+		dict_regions[coordinate][baseName] = {"brut" : float(line[4])}	
+	return(counter)
+
 #############
 for i in filelist:
 	#### à fonctionnariser
@@ -77,31 +93,33 @@ for i in filelist:
 				line = [w.replace(',', '.') for w in line]
 				expression = r'^.*#.*$' # remove header
 				if not re.match(expression, line[0]) and line[0] != "chrX" and line[0] != "chrY":
+					counter = build_dict(baseName, line, counter)
 					#création moyenne par patient
-					if(baseName not in dict_patients):
-						dict_patients[baseName] = {"sum_patient": float(line[4])}
-					else:
-						dict_patients[baseName]["sum_patient"] += float(line[4])
+					#if(baseName not in dict_patients):
+					#	dict_patients[baseName] = {"sum_patient": float(line[4])}
+					#else:
+					#	dict_patients[baseName]["sum_patient"] += float(line[4])
 					# création dictionnaire avec les valeurs bruts
-					coordinate = (line[0],line[1],line[2], line[3])
-					if coordinate not in dict_regions :
-						counter += 1
-						dict_regions[coordinate] = {baseName : {"brut" : float(line[4])}}
-					else :
-						dict_regions[coordinate][baseName] = {"brut" : float(line[4])}
+					#coordinate = (line[0],line[1],line[2], line[3])
+					#if coordinate not in dict_regions :
+					#	counter += 1
+					#	dict_regions[coordinate] = {baseName : {"brut" : float(line[4])}}
+					#else :
+					#	dict_regions[coordinate][baseName] = {"brut" : float(line[4])}
 				else :
 					if not re.match(expression, line[0]) and line[0] == "chrX":
-						if(baseName not in dict_patients_ChrX):
-							dict_patients_ChrX[baseName] = {"sum_patient": float(line[4])}
-						else:
-							dict_patients_ChrX[baseName]["sum_patient"] += float(line[4])
-						# création dictionnaire avec les valeurs bruts
-						coordinate = (line[0],line[1],line[2],line[3])
-						if coordinate not in dict_regions_ChrX :
-							counter_ChrX += 1
-							dict_regions_ChrX[coordinate] = {baseName : {"brut" : float(line[4])}}
-						else :
-							dict_regions_ChrX[coordinate][baseName] = {"brut" : float(line[4])}
+						counter = build_dict(baseName, line, counter)
+						# if(baseName not in dict_patients_ChrX):
+						# 	dict_patients_ChrX[baseName] = {"sum_patient": float(line[4])}
+						# else:
+						# 	dict_patients_ChrX[baseName]["sum_patient"] += float(line[4])
+						# # création dictionnaire avec les valeurs bruts
+						# coordinate = (line[0],line[1],line[2],line[3])
+						# if coordinate not in dict_regions_ChrX :
+						# 	counter_ChrX += 1
+						# 	dict_regions_ChrX[coordinate] = {baseName : {"brut" : float(line[4])}}
+						# else :
+						# 	dict_regions_ChrX[coordinate][baseName] = {"brut" : float(line[4])}
 # faire pareil pour ChrY
 #############
 
