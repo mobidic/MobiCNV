@@ -47,12 +47,13 @@ sample_name = []
 counter = 0
 dict_regions = {}
 dict_patients = {}
+dict_mean = {}
 total_mean = 0
 dict_regions_ChrX = {}
 dict_patients_ChrX = {}
 total_mean_ChrX = 0
 counter_ChrX = 0
-
+print("\nFiles that will be considered:\n")
 #############
 for i in filelist:
 	#### à fonctionnariser
@@ -123,24 +124,30 @@ for sample_name in dict_patients_ChrX:
 for coordinate in dict_regions :
 	for sample_name in dict_regions[coordinate]:
 		total = 0
+		full_total = 0
 		sample_number = 0
 		for sample_other in dict_regions[coordinate]:
 			if sample_other != sample_name:
 				total += dict_regions[coordinate][sample_other]['brut']
 				sample_number +=1
+			full_total += dict_regions[coordinate][sample_other]['brut']
 		moyenne_exon = total / sample_number
+		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
 		dict_regions[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
 
 # FOR X
 for coordinate in dict_regions_ChrX :
 	for sample_name in dict_regions_ChrX[coordinate]:
 		total = 0
+		full_total = 0
 		sample_number = 0
 		for sample_other in dict_regions_ChrX[coordinate]:
 			if sample_other != sample_name:
 				total += dict_regions_ChrX[coordinate][sample_other]['brut']
 				sample_number +=1
+			full_total += dict_regions_ChrX[coordinate][sample_other]['brut']
 		moyenne_exon = total / sample_number
+		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
 		dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
 
 #############
@@ -217,12 +224,12 @@ for coordinate in dict_regions_ChrX :
 			ratio_normalise = float(0)
 		dict_regions_ChrX[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
 
-pp.pprint(dict_patients)
-pp.pprint(dict_regions)
+#pp.pprint(dict_patients)
+#pp.pprint(dict_regions)
 
 with open('cnv_analysis.txt', 'w') as csv_file:
 	writer = csv.writer(csv_file)
-	header = "Chr\tStart\tEnd\tRegionID\t"
+	header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
 	for coordinate in dict_regions :
 		for sample_name in dict_regions[coordinate]:
 			header += str(sample_name) + "_brut" + "\t"
@@ -241,7 +248,8 @@ with open('cnv_analysis.txt', 'w') as csv_file:
 			str(coordinate[0]) + "\t" +
 			str(coordinate[1]) + "\t" +
 			str(coordinate[2]) + "\t" +
-			str(coordinate[3]) + "\t"
+			str(coordinate[3]) + "\t" +
+			str(round(dict_mean[coordinate]["exon_mean_doc"], 2)) + "\t"
 			)
 		for sample_name in dict_regions[coordinate] :
 			csv_file.write(str(dict_regions[coordinate][sample_name]["brut"]) + "\t")
@@ -257,7 +265,7 @@ with open('cnv_analysis.txt', 'w') as csv_file:
 
 with open('cnv_analysis_ChrX.txt', 'w') as csv_file:
 	writer = csv.writer(csv_file)
-	header = "Chr\tStart\tend\tRegionID\t"
+	header = "Chr\tStart\tend\tRegionID\tMean DoC\t"
 	for coordinate in dict_regions_ChrX :
 		for sample_name in dict_regions_ChrX[coordinate]:
 			header += str(sample_name) + "_brut" + "\t"
@@ -276,7 +284,8 @@ with open('cnv_analysis_ChrX.txt', 'w') as csv_file:
 			str(coordinate[0]) + "\t" +
 			str(coordinate[1]) + "\t" +
 			str(coordinate[2]) + "\t" +
-			str(coordinate[3]) + "\t"
+			str(coordinate[3]) + "\t" +
+			str(round(dict_mean[coordinate]["exon_mean_doc"], 2)) + "\t"
 			)
 		for sample_name in dict_regions_ChrX[coordinate] :
 			csv_file.write(str(dict_regions_ChrX[coordinate][sample_name]["brut"]) + "\t")
@@ -298,7 +307,7 @@ os.system("sort -k1.4n -k2,2n -k3,3n cnv_analysis_ChrX.txt > cnv_analysis_ChrX_s
 
 
 ###########
-if Panel != False:
+if (Panel != False):
 	panel = open(Panel, 'r')
 	# panelreader = csv.DictReader(panel, delimiter='\t')
 
@@ -319,26 +328,46 @@ style2 = workbook.add_format({'bold': True, 'bg_color': '#FF3333'})
 style3 = workbook.add_format({'bold': True, 'bg_color': '#5EBBFF'})
 style4 = workbook.add_format({'bold': True, 'bg_color': '#8F5EFF'})
 style5 = workbook.add_format({'bold': True,})
+#http://xlsxwriter.readthedocs.io/example_conditional_format.html#ex-cond-format
+# Add a format. Light red fill with dark red text.
+format1 = workbook.add_format({'bg_color': '#FFC7CE',
+                               'font_color': '#9C0006'})
+# Add a format. Green fill with dark green text.
+format2 = workbook.add_format({'bg_color': '#C6EFCE',
+                               'font_color': '#006100'})
 #worksheet summary to get only interesting stuff
 summary = workbook.add_worksheet('Summary')
-summary.freeze_panes(1, 4)
+summary.freeze_panes(1, 5)
 summary.set_row(0, 20, style5)
-summary.set_column('A:D', 20, style5)
-if Panel != False:
+summary.set_column('A:E', 20, style5)
+if (Panel != False):
 	worksheet2 = workbook.add_worksheet(str("Panel"))
-	worksheet2.freeze_panes(1, 4)
+	worksheet2.freeze_panes(1, 5)
 	worksheet2.set_row(0, 20, style5)
-	worksheet2.set_column('A:D', 20, style5)
+	worksheet2.set_column('A:E', 20, style5)
 
+def add_conditionnal_format(worksheet, threshold, start, end):
+	#add a conditionnal format to raw DoC
+	if (start == 0):
+		start = 2
+	cell_range = "E" + str(start) + ":T" + str(end)
+	worksheet.conditional_format(cell_range, {'type': 'cell',
+                                         'criteria': '>=',
+                                         'value': threshold,
+                                         'format': format2})
+	worksheet.conditional_format(cell_range, {'type': 'cell',
+                                         'criteria': '<',
+                                         'value': threshold,
+                                         'format': format1})
 
 def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, start1=0, start2=0):
 	# TODO: change it to parameter and save worksheet
 	# if panel:
 
 	worksheet = workbook.add_worksheet(str(worksheet))
-	worksheet.freeze_panes(1, 4)
+	worksheet.freeze_panes(1, 5)
 	worksheet.set_row(0, 20, style5)
-	worksheet.set_column('A:D', 20, style5)
+	worksheet.set_column('A:E', 20, style5)
 	#structure data from txt
 	f = open( str(txt_file), 'r+')
 	row_list = []
@@ -359,7 +388,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	for column in column_list:
 		for item in range(len(column)):
 			if regex_region.search(column[0]):
-				if Panel != False:
+				if (Panel != False):
 					for gene in liste_panel:
 						if re.compile(r'.*' + gene + '.*').search(column[item]) :
 							# print (column[item])
@@ -397,7 +426,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 			if (item == 0):
 				summary.write(item,i,column[item], style5)
 				# if panel:
-				if Panel != False:
+				if (Panel != False):
 					worksheet2.write(item,i,column[item], style5)
 		i+=1
 	i = 0
@@ -405,7 +434,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	for column in column_list2:
 		j = 0
 		if(start1 > 0):
-			j += start1
+			j = start1
 		for item in range(len(column)):
 			if (item in uniq_interesting):
 				if regex_ratio.search(column[0]):
@@ -426,19 +455,19 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 					summary.write(j,i,column[item])
 				j+=1
 		i+=1
+	
+
 	i = 0
-
-
 	# part to dev
-	if Panel != False:
-		l=0
-		uniq_interesting = list(set(gene4interest))
+	if (Panel != False):
+		#l=0
+		uniq_interesting_panel = list(set(gene4interest))
 		for column in column_list3:
-			l = 0
+			l = 1
 			if (start2 != 0 ):
-				l += start2
+				l = start2
 			for item in range(len(column)):
-				if (item in uniq_interesting):
+				if (item in uniq_interesting_panel):
 					if regex_ratio.search(column[0]):
 						if(item > 0):
 							if(float(column[item]) <= threshold_del_hmz):
@@ -458,11 +487,14 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 					l+=1
 			i+=1
 		i = 0
-		worksheet2.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
-	worksheet.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
-	summary.set_column('E:BL', None, None, {'level': 1, 'hidden': True})
-		
+		worksheet2.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+		add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
+	worksheet.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+	add_conditionnal_format(worksheet, 50, 2, len(row_list))
+	summary.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+	add_conditionnal_format(summary, 50, start1, start1 + len(uniq_interesting))
 	return (j,l)
+
 #worksheet for autosomes
 (start1, start2) = writing_total('Autosomes','cnv_analysis_sorted.txt', 0.3, 0.7, 1.3, 1.7)
 # print (start1, start2)
