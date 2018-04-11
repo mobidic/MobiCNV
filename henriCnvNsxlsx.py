@@ -323,11 +323,12 @@ if (Panel != False):
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 workbook = xlsxwriter.Workbook(OutFile)
 #Define style of cells
-style1 = workbook.add_format({'bold': True, 'bg_color': '#FFC25E'})
-style2 = workbook.add_format({'bold': True, 'bg_color': '#FF3333'})
-style3 = workbook.add_format({'bold': True, 'bg_color': '#5EBBFF'})
-style4 = workbook.add_format({'bold': True, 'bg_color': '#8F5EFF'})
-style5 = workbook.add_format({'bold': True,})
+style1 = workbook.add_format({'bold': True, 'bg_color': '#FFC25E', 'locked' : True})
+style2 = workbook.add_format({'bold': True, 'bg_color': '#FF3333', 'locked' : True})
+style3 = workbook.add_format({'bold': True, 'bg_color': '#5EBBFF', 'locked' : True})
+style4 = workbook.add_format({'bold': True, 'bg_color': '#8F5EFF', 'locked' : True})
+style5 = workbook.add_format({'bold': True, 'locked' : True})
+style6 = workbook.add_format({'locked' : True})
 #http://xlsxwriter.readthedocs.io/example_conditional_format.html#ex-cond-format
 # Add a format. Light red fill with dark red text.
 format1 = workbook.add_format({'bg_color': '#FFC7CE',
@@ -422,7 +423,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 				else:
 					worksheet.write(item, i, column[item], style5)
 			else:
-				worksheet.write(item,i,column[item])
+				worksheet.write(item,i,column[item], style6)
 			if (item == 0):
 				summary.write(item,i,column[item], style5)
 				# if panel:
@@ -452,7 +453,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 					else:
 						summary.write(j, i, column[item], style5)
 				else:
-					summary.write(j,i,column[item])
+					summary.write(j,i,column[item], style6)
 				j+=1
 		i+=1
 	
@@ -483,7 +484,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 						else:
 							worksheet2.write(l, i, column[item], style5)
 					else:
-						worksheet2.write(l,i,column[item])
+						worksheet2.write(l,i,column[item], style6)
 					l+=1
 			i+=1
 		i = 0
@@ -491,6 +492,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 		add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
 	worksheet.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
 	add_conditionnal_format(worksheet, 50, 2, len(row_list))
+	worksheet.protect()
 	summary.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
 	add_conditionnal_format(summary, 50, start1, start1 + len(uniq_interesting))
 	return (j,l)
@@ -500,6 +502,9 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 # print (start1, start2)
 #worksheet for ChrX
 writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, start1, start2)
+worksheet2.protect()
+summary.protect()
 workbook.close()
 #remove temporary files
 os.system("rm cnv_analysis.txt cnv_analysis_sorted.txt cnv_analysis_ChrX.txt cnv_analysis_ChrX_sorted.txt")
+print("\nDone!!!\n")
