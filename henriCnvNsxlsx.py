@@ -22,12 +22,22 @@ pp = pprint.PrettyPrinter(indent=4, depth=6)
 #added david 27/03/2018 - deal with path passed as arg
 parser = argparse.ArgumentParser(description='deal with path.')
 parser.add_argument('-p', '--path', default='.')
+parser.add_argument('-gl', '--genelist', default='')
+parser.add_argument('-t', '--type', default='tsv')
+parser.add_argument('-o', '--out', default='cnv_analysis_sorted.xlsx')
 args = parser.parse_args()
 #print(args.path)
 #sys.exit()
 #Path = "/Users/david/Downloads/henri_cnv/03_2018/170925H27JNL/"
 Path = args.path
-
+Panel = args.genelist
+Type = args.type
+OutFile = args.out
+ext = "tsv"
+delim = "\t"
+if Type == "csv":
+	ext = "csv"
+	delim = ","
 
 filelist = os.listdir(Path)
 number_of_file = 0
@@ -44,19 +54,23 @@ counter_ChrX = 0
 #############
 for i in filelist:
 	#### à fonctionnariser
-	if i.endswith("coverage.tsv"):  # You could also add "and i.startswith('f')
+	regex = re.compile(r'^[^\.](.+)[\._]coverage\.%s$'%ext)
+	matchObj = regex.search(os.path.basename(i))
+	if(matchObj):
+	#if i.endswith("coverage." + ext):  # You could also add "and i.startswith('f')
+		print(i)
 		number_of_file += 1
-		regex = re.compile(r'(.*)[\._]coverage\.tsv')
-		matchObj = regex.search(os.path.basename(i))
-		if(matchObj):
-			baseName = matchObj.group(1)
-			sample_name.append(baseName)
-		else:
-			sys.exit("Error [1] : file \'" + i + "\' does not respect format (sample.coverage.tsv).")
+	#	regex = re.compile(r'^[^\.](.+)[\._]coverage\.[tc]sv$')
+	#	matchObj = regex.search(os.path.basename(i))
+	#	if(matchObj):
+		baseName = matchObj.group(1)
+		sample_name.append(baseName)
+	#	else:
+	#		sys.exit("Error [1] : file \'" + i + "\' does not respect format (sample.coverage.tsv).")
 	####
 
 		with open(Path + i, 'r') as csvfile:
-			csvreader = csv.reader(csvfile, delimiter ='\t')
+			csvreader = csv.reader(csvfile, delimiter =delim)
 			for line in csvreader:
 				line = [w.replace(',', '.') for w in line]
 				expression = r'^.*#.*$' # remove header
@@ -282,12 +296,13 @@ os.system("sort -k1.4n -k2,2n -k3,3n cnv_analysis_ChrX.txt > cnv_analysis_ChrX_s
 
 
 ###########
-panel = open("panel.txt", 'r')
-# panelreader = csv.DictReader(panel, delimiter='\t')
+if Panel != '':
+	panel = open(Panel, 'r')
+	# panelreader = csv.DictReader(panel, delimiter='\t')
 
-liste_panel = []
-for gene in panel :
-	liste_panel.append(gene.rstrip())
+	liste_panel = []
+	for gene in panel :
+		liste_panel.append(gene.rstrip())
 ###########
 
 
@@ -295,7 +310,7 @@ for gene in panel :
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-workbook = xlsxwriter.Workbook('cnv_analysis_sorted.xlsx')
+workbook = xlsxwriter.Workbook(OutFile)
 #Define style of cells
 style1 = workbook.add_format({'bold': True, 'bg_color': '#FFC25E'})
 style2 = workbook.add_format({'bold': True, 'bg_color': '#FF3333'})
@@ -342,11 +357,13 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	for column in column_list:
 		for item in range(len(column)):
 			if regex_region.search(column[0]):
-				for gene in liste_panel:
-					if re.compile(r'.*' + gene + '.*').search(column[item]) :
-						# print (column[item])
-						gene4interest.append(item)
-
+				if Panel != '':
+					for gene in liste_panel:
+						if re.compile(r'.*' + gene + '.*').search(column[item]) :
+							# print (column[item])
+							gene4interest.append(item)
+				else:
+					gene4interest.append(item)
 			if regex_ratio.search(column[0]):
 				if (item > 0) :
 					if(float(column[item]) <= threshold_del_hmz):
