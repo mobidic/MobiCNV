@@ -54,7 +54,7 @@ counter_ChrX = 0
 #############
 for i in filelist:
 	#### à fonctionnariser
-	regex = re.compile(r'^[^\.](.+)[\._]coverage\.%s$'%ext)
+	regex = re.compile(r'^([^\.].+)[\._]coverage\.%s$'%ext)
 	matchObj = regex.search(os.path.basename(i))
 	if(matchObj):
 	#if i.endswith("coverage." + ext):  # You could also add "and i.startswith('f')
