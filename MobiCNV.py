@@ -551,8 +551,10 @@ def write_small_worksheets(selected, start, first_row, small_worksheet, col_list
 		i+=1
 	return (uniq_selected, j)
 
+last_col_2_hide = number_of_file*4+4
+#sample number x number of data block to hide + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
 
-def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, start1=0, start2=0):
+def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, last_col_2_hide, start1=0, start2=0):
 	# TODO: change it to parameter and save worksheet
 	# if panel:
 
@@ -630,7 +632,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	(uniq_interesting, j) = write_small_worksheets(interesting, start1, 0, summary, column_list2, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
 	if (Panel != False):
 		(uniq_interesting_panel, l) = write_small_worksheets(gene4interest, start2, 1, worksheet2, column_list3, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
-		worksheet2.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+		worksheet2.set_column(5,last_col_2_hide, None, None, {'level': 1, 'hidden': True})
 		add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
 	# uniq_interesting = list(set(interesting))
 	# for column in column_list2:
@@ -692,17 +694,18 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	# 	worksheet2.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
 	# 	add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
 	worksheet.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+	worksheet.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
 	add_conditionnal_format(worksheet, 50, 2, len(row_list))
 	worksheet.protect()
-	summary.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+	summary.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
 	add_conditionnal_format(summary, 50, start1, start1 + len(uniq_interesting))
 	return (j,l)
 
 #worksheet for autosomes
-(start1, start2) = writing_total('Autosomes','cnv_analysis.txt', 0.3, 0.7, 1.3, 1.7)
+(start1, start2) = writing_total('Autosomes','cnv_analysis.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide)
 # print (start1, start2)
 #worksheet for ChrX
-writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, start1, start2)
+writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, start1, start2)
 if (Panel != False):
 	worksheet2.protect()
 summary.protect()
