@@ -500,6 +500,16 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 	if (start == 0):
 		start = 2
 	cell_range = "E" + str(start) + ":T" + str(end)
+	#http://xlsxwriter.readthedocs.io/working_with_conditional_formats.html
+	#should work but triigers an error:
+	#Unknown parameter 'icon_style' in conditional_formatting()
+	# worksheet.conditional_format(
+	# 	cell_range,
+	# 	{'type': 'icon_set',
+	# 	 'icon_style': '3_arrows',
+	# 	 'icons': [{'criteria': '>=', 'type': 'number',     'value': 100},
+	# 			   {'criteria': '<=',  'type': 'percentile', 'value': threshold}]}
+	# )
 	worksheet.conditional_format(cell_range, {'type': 'cell',
                                          'criteria': '>=',
                                          'value': threshold,
