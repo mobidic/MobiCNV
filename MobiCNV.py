@@ -151,7 +151,7 @@ def exon_mean(dict_r, dict_m):
 					sample_number +=1
 				full_total += dict_r[coordinate][sample_other]['brut']
 			#moyenne_exon = total / sample_number
-			dict_m[coordinate] = {"exon_mean_doc": float(full_total / (sample_number+1))}
+			dict_m[coordinate] = {"exon_mean_doc": int(full_total / (sample_number+1))}
 			dict_r[coordinate][sample_name]["moyenne_exon"] = float(total / sample_number)
 	return(dict_r, dict_m)
 
@@ -337,7 +337,7 @@ def write_csv_file(file_in, file_out, dict_r, dict_m):
 				str(coordinate[1]) + "\t" +
 				str(coordinate[2]) + "\t" +
 				str(coordinate[3]) + "\t" +
-				str(round(dict_m[coordinate]["exon_mean_doc"], 2)) + "\t"
+				str((dict_m[coordinate]["exon_mean_doc"])) + "\t"
 				)
 			for sample_name in dict_r[coordinate] :
 				csv_file.write(str(dict_r[coordinate][sample_name]["brut"]) + "\t")
@@ -456,6 +456,7 @@ style2 = workbook.add_format({'bold': True, 'bg_color': '#FFC25E', 'locked' : Tr
 style3 = workbook.add_format({'bold': True, 'bg_color': '#5EBBFF', 'locked' : True})
 style4 = workbook.add_format({'bold': True, 'bg_color': '#8F5EFF', 'locked' : True})
 style5 = workbook.add_format({'bold': True, 'locked' : True})
+style6 = workbook.add_format({'bold': True, 'num_format': 1, 'locked' : True})
 #http://xlsxwriter.readthedocs.io/example_conditional_format.html#ex-cond-format
 # Add a format. Light red fill with dark red text.
 format1 = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
@@ -472,15 +473,16 @@ def format_sheet(sheet):
 	sheet.set_row(0, 20, style5)
 	sheet.set_column('A:E', 15, style5)
 	sheet.set_column('D:D', 25)
-	sheet.write_string('CD3', 'Legend:', style5)
-	sheet.write_string('CD4', '', style1)
-	sheet.write_string('CD5', '', style2)
-	sheet.write_string('CD6', '', style3)
-	sheet.write_string('CD7', '', style4)
-	sheet.write_string('CE4', 'Homozygous deletion', style5)
-	sheet.write_string('CE5', 'Heterozygous deletion', style5)
-	sheet.write_string('CE6', 'Heterozygous duplication', style5)
-	sheet.write_string('CE7', 'Homozygous duplication', style5)
+	sheet.set_column('E:E', 15, style6)
+	sheet.write('CD3', 'Legend:', style5)
+	sheet.write('CD4', '', style1)
+	sheet.write('CD5', '', style2)
+	sheet.write('CD6', '', style3)
+	sheet.write('CD7', '', style4)
+	sheet.write('CE4', 'Homozygous deletion', style5)
+	sheet.write('CE5', 'Heterozygous deletion', style5)
+	sheet.write('CE6', 'Heterozygous duplication', style5)
+	sheet.write('CE7', 'Homozygous duplication', style5)
 
 
 #worksheet summary to get only interesting stuff
@@ -501,23 +503,23 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 		start = 2
 	cell_range = "E" + str(start) + ":T" + str(end)
 	#http://xlsxwriter.readthedocs.io/working_with_conditional_formats.html
-	#should work but triigers an error:
-	#Unknown parameter 'icon_style' in conditional_formatting()
-	# worksheet.conditional_format(
-	# 	cell_range,
-	# 	{'type': 'icon_set',
-	# 	 'icon_style': '3_arrows',
-	# 	 'icons': [{'criteria': '>=', 'type': 'number',     'value': 100},
-	# 			   {'criteria': '<=',  'type': 'percentile', 'value': threshold}]}
-	# )
-	worksheet.conditional_format(cell_range, {'type': 'cell',
-                                         'criteria': '>=',
-                                         'value': threshold,
-                                         'format': format2})
-	worksheet.conditional_format(cell_range, {'type': 'cell',
-                                         'criteria': '<',
-                                         'value': threshold,
-                                         'format': format1})
+	#should work but does not: Excel does not recognize cell type as valid for 3 traffic lights- even using set_num_format
+	worksheet.conditional_format(
+		cell_range,
+		{'type': 'icon_set',
+		 'icon_style': '3_traffic_lights',
+		 'icons': [{'criteria': '>=', 'type': 'number',     'value': 100},
+				   {'criteria': '<=',  'type': 'number', 'value': threshold}]}
+	)
+	#xlsxwriter < 1.0.0 => cell formatting
+# 	worksheet.conditional_format(cell_range, {'type': 'cell',
+#                                           'criteria': '>=',
+#                                           'value': threshold,
+#                                           'format': format2})
+# 	worksheet.conditional_format(cell_range, {'type': 'cell',
+#                                           'criteria': '<',
+#                                           'value': threshold,
+#                                           'format': format1})
 
 def write_small_worksheets(selected, start, first_row, small_worksheet, col_list, regex_r, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz):
 	#called inside writing_total to wirte summary and panel sheets
@@ -614,7 +616,10 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 				else:
 					worksheet.write(item, i, column[item], style5)
 			else:
+				#if (column[item].isdigit()):
 				worksheet.write(item,i,column[item])
+				#else:
+				#	worksheet.write(item,i,column[item])
 			if (item == 0):
 				summary.write(item,i,column[item], style5)
 				# if panel:
