@@ -47,6 +47,7 @@ counter = 0
 dict_regions = {}
 dict_patients = {}
 dict_mean = {}
+dict_gender = {}
 total_mean = 0
 dict_regions_ChrX = {}
 dict_patients_ChrX = {}
@@ -133,9 +134,14 @@ for i in filelist:
 for sample_name in dict_patients:
 		dict_patients[sample_name]["moyenne_patient"] = dict_patients[sample_name]["sum_patient"]/ counter
 # FOR X
-for sample_name in dict_patients_ChrX:
-		dict_patients_ChrX[sample_name]["moyenne_patient"] = dict_patients_ChrX[sample_name]["sum_patient"]/ counter_ChrX
-
+if counter_ChrX > 0:
+	for sample_name in dict_patients_ChrX:
+			dict_patients_ChrX[sample_name]["moyenne_patient"] = dict_patients_ChrX[sample_name]["sum_patient"]/ counter_ChrX
+			dict_gender[sample_name] = {"xratio": float(dict_patients_ChrX[sample_name]["moyenne_patient"] / dict_patients[sample_name]["moyenne_patient"]),
+										"gender": "male"}
+			if (dict_gender[sample_name]["xratio"] > 0.6):
+				dict_gender[sample_name]["gender"] = "female"
+		
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
 
@@ -156,7 +162,8 @@ def exon_mean(dict_r, dict_m):
 	return(dict_r, dict_m)
 
 (dict_regions, dict_mean) = exon_mean(dict_regions, dict_mean)
-(dict_regions_ChrX, dict_mean) = exon_mean(dict_regions_ChrX, dict_mean)
+if counter_ChrX > 0:
+	(dict_regions_ChrX, dict_mean) = exon_mean(dict_regions_ChrX, dict_mean)
 
 #pp.pprint(dict_regions)
 
@@ -221,7 +228,11 @@ def compute_ratio(dict_p, dict_r, counter):
 	return (dict_p, dict_r)
 
 (dict_patients, dict_regions) = compute_ratio(dict_patients, dict_regions, counter)
-(dict_patients_ChrX, dict_regions_ChrX) = compute_ratio(dict_patients_ChrX, dict_regions_ChrX, counter_ChrX)	
+if counter_ChrX > 0:
+	(dict_patients_ChrX, dict_regions_ChrX) = compute_ratio(dict_patients_ChrX, dict_regions_ChrX, counter_ChrX)
+
+#pp.pprint(dict_regions)
+#pp.pprint(dict_regions_ChrX)
 # 
 # for sample_name in dict_patients:
 # 	dict_patients[sample_name]["somme_moyenne_exon"] = 0
@@ -353,7 +364,8 @@ def write_csv_file(file_in, file_out, dict_r, dict_m):
 	os.system("sort -k1.4n -k2,2n -k3,3n " + file_in + " > " + file_out)
 
 write_csv_file('cnv_analysis.txt', 'cnv_analysis_sorted.txt', dict_regions, dict_mean)
-write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', dict_regions_ChrX, dict_mean)
+if counter_ChrX > 0:
+	write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', dict_regions_ChrX, dict_mean)
 
 
 # with open('cnv_analysis.txt', 'w') as csv_file:
@@ -457,6 +469,8 @@ style3 = workbook.add_format({'bold': True, 'bg_color': '#5EBBFF', 'locked' : Tr
 style4 = workbook.add_format({'bold': True, 'bg_color': '#8F5EFF', 'locked' : True})
 style5 = workbook.add_format({'bold': True, 'locked' : True})
 style6 = workbook.add_format({'bold': True, 'num_format': 1, 'locked' : True})
+style7 = workbook.add_format({'bold': True, 'color': '#F791E7', 'locked' : True})
+style8 = workbook.add_format({'bold': True, 'color': '#5EBBFF', 'locked' : True})
 #http://xlsxwriter.readthedocs.io/example_conditional_format.html#ex-cond-format
 # Add a format. Light red fill with dark red text.
 format1 = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
@@ -467,31 +481,37 @@ format2 = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
 # summary.set_row(0, 20, style5)
 # summary.set_column('A:E', 15, style5)
 # summary.set_column('D:D', 25)
+last_col = number_of_file*5 + 4
+#sample number x number of data blocks + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
+last_col_2_hide = number_of_file*4 + 4
+#sample number x number of data blocks to hide + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
 
-def format_sheet(sheet):
+def format_sheet(sheet, last_col):
 	sheet.freeze_panes(1, 5)
 	sheet.set_row(0, 20, style5)
 	sheet.set_column('A:E', 15, style5)
 	sheet.set_column('D:D', 25)
 	sheet.set_column('E:E', 15, style6)
-	sheet.write('CD3', 'Legend:', style5)
-	sheet.write('CD4', '', style1)
-	sheet.write('CD5', '', style2)
-	sheet.write('CD6', '', style3)
-	sheet.write('CD7', '', style4)
-	sheet.write('CE4', 'Homozygous deletion', style5)
-	sheet.write('CE5', 'Heterozygous deletion', style5)
-	sheet.write('CE6', 'Heterozygous duplication', style5)
-	sheet.write('CE7', 'Homozygous duplication', style5)
+	sheet.set_column(last_col+2, last_col+2, 15)
+	sheet.set_column(last_col+3, last_col+3, 15)
+	sheet.write(3, last_col+2, 'Legend:', style5)
+	sheet.write(4, last_col+2, '', style1)
+	sheet.write(5, last_col+2, '', style2)
+	sheet.write(6, last_col+2, '', style3)
+	sheet.write(7, last_col+2, '', style4)
+	sheet.write(4, last_col+3, 'Homozygous deletion', style5)
+	sheet.write(5, last_col+3, 'Heterozygous deletion', style5)
+	sheet.write(6, last_col+3, 'Heterozygous duplication', style5)
+	sheet.write(7, last_col+3, 'Homozygous duplication', style5)
 
 
 #worksheet summary to get only interesting stuff
 summary = workbook.add_worksheet(str("Summary"))
-format_sheet(summary)
+format_sheet(summary, last_col)
 
 if (Panel != False):
 	worksheet2 = workbook.add_worksheet(str("Panel"))
-	format_sheet(worksheet2)
+	format_sheet(worksheet2, last_col)
 	# worksheet2.freeze_panes(1, 5)
 	# worksheet2.set_row(0, 20, style5)
 	# worksheet2.set_column('A:E', 15, style5)
@@ -521,7 +541,7 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 #                                           'value': threshold,
 #                                           'format': format1})
 
-def write_small_worksheets(selected, start, first_row, small_worksheet, col_list, regex_r, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz):
+def write_small_worksheets(selected, start, first_row, small_worksheet, col_list, last_col, regex_r, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz):
 	#called inside writing_total to wirte summary and panel sheets
 	i = 0
 	uniq_selected = list(set(selected))
@@ -546,26 +566,41 @@ def write_small_worksheets(selected, start, first_row, small_worksheet, col_list
 					else:
 						small_worksheet.write(j, i, column[item], style5)
 				else:
-					small_worksheet.write(j,i,column[item])
+					try:
+						small_worksheet.write(j,i,int(column[item]))
+					except ValueError:
+						small_worksheet.write(j,i,column[item])
 				j+=1
 		i+=1
+	small_worksheet.write(9, last_col+2, "Sample ID", style5)
+	small_worksheet.write(9, last_col+3, "Predicted Gender", style5)
+	small_worksheet.write(9, last_col+4, "X ratio", style5)
+	if counter_ChrX > 0:
+		m = 10
+		for sample_name in dict_gender:
+			style = style8
+			if dict_gender[sample_name]["gender"] == 'female':
+				style = style7
+			small_worksheet.write(m, last_col+2, sample_name, style)
+			small_worksheet.write(m, last_col+3, dict_gender[sample_name]["gender"], style)
+			small_worksheet.write(m, last_col+4, round(dict_gender[sample_name]["xratio"], 2), style)
+			m += 1
 	return (uniq_selected, j)
 
-last_col_2_hide = number_of_file*4+4
-#sample number x number of data block to hide + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
 
-def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, last_col_2_hide, start1=0, start2=0):
+
+def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, last_col_2_hide, last_col, start1=0, start2=0):
 	# TODO: change it to parameter and save worksheet
 	# if panel:
 
 	worksheet = workbook.add_worksheet(str(worksheet))
-	format_sheet(worksheet)
+	format_sheet(worksheet, last_col)
 	# worksheet.freeze_panes(1, 5)
 	# worksheet.set_row(0, 20, style5)
 	# worksheet.set_column('A:E', 15, style5)
 	# worksheet.set_column('D:D', 25)
 	#structure data from txt
-	f = open( str(txt_file), 'r+')
+	f = open(str(txt_file), 'r+')
 	row_list = []
 	for row in f:
 		row_list.append(row.split('\t'))
@@ -618,10 +653,10 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 				else:
 					worksheet.write(item, i, column[item], style5)
 			else:
-				#if (column[item].isdigit()):
-				worksheet.write(item,i,column[item])
-				#else:
-				#	worksheet.write(item,i,column[item])
+				try:
+					worksheet.write(item,i,int(column[item]))
+				except ValueError:
+					worksheet.write(item,i,column[item])
 			if (item == 0):
 				summary.write(item,i,column[item], style5)
 				# if panel:
@@ -629,9 +664,9 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 					worksheet2.write(item,i,column[item], style5)
 		i+=1
 	#i = 0
-	(uniq_interesting, j) = write_small_worksheets(interesting, start1, 0, summary, column_list2, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
+	(uniq_interesting, j) = write_small_worksheets(interesting, start1, 0, summary, column_list2, last_col, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
 	if (Panel != False):
-		(uniq_interesting_panel, l) = write_small_worksheets(gene4interest, start2, 1, worksheet2, column_list3, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
+		(uniq_interesting_panel, l) = write_small_worksheets(gene4interest, start2, 1, worksheet2, column_list3, last_col,  regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
 		worksheet2.set_column(5,last_col_2_hide, None, None, {'level': 1, 'hidden': True})
 		add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
 	# uniq_interesting = list(set(interesting))
@@ -702,10 +737,11 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	return (j,l)
 
 #worksheet for autosomes
-(start1, start2) = writing_total('Autosomes','cnv_analysis.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide)
+(start1, start2) = writing_total('Autosomes','cnv_analysis.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col)
 # print (start1, start2)
 #worksheet for ChrX
-writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, start1, start2)
+if counter_ChrX > 0:
+	writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
 if (Panel != False):
 	worksheet2.protect()
 summary.protect()
