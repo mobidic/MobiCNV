@@ -53,6 +53,11 @@ dict_regions_ChrX = {}
 dict_patients_ChrX = {}
 total_mean_ChrX = 0
 counter_ChrX = 0
+dict_regions_ChrY = {}
+dict_patients_ChrY = {}
+total_mean_ChrY = 0
+counter_ChrY = 0
+
 print("\nFiles that will be considered:\n")
 
 
@@ -107,9 +112,10 @@ for i in filelist:
 					#	dict_regions[coordinate] = {baseName : {"brut" : float(line[4])}}
 					#else :
 					#	dict_regions[coordinate][baseName] = {"brut" : float(line[4])}
-				else :
-					if not re.match(expression, line[0]) and line[0] == "chrX":
+				elif not re.match(expression, line[0]) and (line[0] == "chrX" or line[0] == "X"):
 						(counter_ChrX, dict_regions_ChrX, dict_patients_ChrX) = build_dict(baseName, line, counter_ChrX, dict_regions_ChrX, dict_patients_ChrX)
+				elif not re.match(expression, line[0]) and (line[0] == "chrY" or line[0] == "Y"):
+						(counter_ChrY, dict_regions_ChrY, dict_patients_ChrY) = build_dict(baseName, line, counter_ChrY, dict_regions_ChrY, dict_patients_ChrY)
 						# if(baseName not in dict_patients_ChrX):
 						# 	dict_patients_ChrX[baseName] = {"sum_patient": float(line[4])}
 						# else:
@@ -141,6 +147,12 @@ if counter_ChrX > 0:
 										"gender": "male"}
 			if (dict_gender[sample_name]["xratio"] > 0.6):
 				dict_gender[sample_name]["gender"] = "female"
+if counter_ChrY > 0:
+	for sample_name in dict_patients_ChrY:
+			dict_patients_ChrY[sample_name]["moyenne_patient"] = dict_patients_ChrY[sample_name]["sum_patient"]/ counter_ChrY
+			if dict_gender[sample_name]["gender"] != "male":
+				print("\n\nWARNING Gender inconsistancy for " + sample_name + "reads on Y chr with X ration > 0.6\n\n")
+				dict_gender[sample_name]["gender"] = "male/female"
 		
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
@@ -164,7 +176,8 @@ def exon_mean(dict_r, dict_m):
 (dict_regions, dict_mean) = exon_mean(dict_regions, dict_mean)
 if counter_ChrX > 0:
 	(dict_regions_ChrX, dict_mean) = exon_mean(dict_regions_ChrX, dict_mean)
-
+if counter_ChrY > 0:
+	(dict_regions_ChrY, dict_mean) = exon_mean(dict_regions_ChrY, dict_mean)
 #pp.pprint(dict_regions)
 
 # for coordinate in dict_regions :
@@ -230,7 +243,8 @@ def compute_ratio(dict_p, dict_r, counter):
 (dict_patients, dict_regions) = compute_ratio(dict_patients, dict_regions, counter)
 if counter_ChrX > 0:
 	(dict_patients_ChrX, dict_regions_ChrX) = compute_ratio(dict_patients_ChrX, dict_regions_ChrX, counter_ChrX)
-
+if counter_ChrY > 0:
+	(dict_patients_ChrY, dict_regions_ChrY) = compute_ratio(dict_patients_ChrY, dict_regions_ChrY, counter_ChrY)
 #pp.pprint(dict_regions)
 #pp.pprint(dict_regions_ChrX)
 # 
@@ -366,7 +380,8 @@ def write_csv_file(file_in, file_out, dict_r, dict_m):
 write_csv_file('cnv_analysis.txt', 'cnv_analysis_sorted.txt', dict_regions, dict_mean)
 if counter_ChrX > 0:
 	write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', dict_regions_ChrX, dict_mean)
-
+if counter_ChrY > 0:
+	write_csv_file('cnv_analysis_ChrY.txt', 'cnv_analysis_ChrY_sorted.txt', dict_regions_ChrY, dict_mean)
 
 # with open('cnv_analysis.txt', 'w') as csv_file:
 # 	writer = csv.writer(csv_file)
@@ -575,7 +590,7 @@ def write_small_worksheets(selected, start, first_row, small_worksheet, col_list
 	small_worksheet.write(9, last_col+2, "Sample ID", style5)
 	small_worksheet.write(9, last_col+3, "Predicted Gender", style5)
 	small_worksheet.write(9, last_col+4, "X ratio", style5)
-	if counter_ChrX > 0:
+	if counter_ChrX > 0 or counter_ChrY > 0:
 		m = 10
 		for sample_name in dict_gender:
 			style = style8
@@ -740,8 +755,16 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 (start1, start2) = writing_total('Autosomes','cnv_analysis.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col)
 # print (start1, start2)
 #worksheet for ChrX
+start3 = 0
+start4 = 0
 if counter_ChrX > 0:
-	writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
+	(start3, start4) = writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
+if counter_ChrY > 0:
+	if start3 > 0 and start4 > 0:
+		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start3, start4)
+	else:
+		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
+
 if (Panel != False):
 	worksheet2.protect()
 summary.protect()
