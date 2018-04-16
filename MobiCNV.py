@@ -145,7 +145,7 @@ if counter_ChrX > 0:
 			dict_patients_ChrX[sample_name]["moyenne_patient"] = dict_patients_ChrX[sample_name]["sum_patient"]/ counter_ChrX
 			dict_gender[sample_name] = {"xratio": float(dict_patients_ChrX[sample_name]["moyenne_patient"] / dict_patients[sample_name]["moyenne_patient"]),
 										"gender": "male"}
-			if (dict_gender[sample_name]["xratio"] > 0.6):
+			if (dict_gender[sample_name]["xratio"] > 0.65):
 				dict_gender[sample_name]["gender"] = "female"
 if counter_ChrY > 0:
 	for sample_name in dict_patients_ChrY:
