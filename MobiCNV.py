@@ -152,7 +152,7 @@ if counter_ChrY > 0:
 			dict_patients_ChrY[sample_name]["moyenne_patient"] = dict_patients_ChrY[sample_name]["sum_patient"]/ counter_ChrY
 			#print(sample_name + " " + str(dict_patients_ChrY[sample_name]["moyenne_patient"]) + " " + dict_gender[sample_name]["gender"])
 			if (dict_patients_ChrY[sample_name]["moyenne_patient"] > 1 and dict_gender[sample_name]["gender"] != "male"):
-				print("\n\nWARNING Gender inconsistancy for " + sample_name + "reads on Y chr with X ration > 0.6\n\n")
+				print("\n\nWARNING Gender inconsistancy for " + sample_name + "reads on Y chr with X ratio > 0.65\n\n")
 				dict_gender[sample_name]["gender"] = "male/female"
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
