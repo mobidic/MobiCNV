@@ -150,10 +150,10 @@ if counter_ChrX > 0:
 if counter_ChrY > 0:
 	for sample_name in dict_patients_ChrY:
 			dict_patients_ChrY[sample_name]["moyenne_patient"] = dict_patients_ChrY[sample_name]["sum_patient"]/ counter_ChrY
-			if dict_gender[sample_name]["gender"] != "male":
+			#print(sample_name + " " + str(dict_patients_ChrY[sample_name]["moyenne_patient"]) + " " + dict_gender[sample_name]["gender"])
+			if (dict_patients_ChrY[sample_name]["moyenne_patient"] > 1 and dict_gender[sample_name]["gender"] != "male"):
 				print("\n\nWARNING Gender inconsistancy for " + sample_name + "reads on Y chr with X ration > 0.6\n\n")
 				dict_gender[sample_name]["gender"] = "male/female"
-		
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
 
@@ -770,5 +770,5 @@ if (Panel != False):
 summary.protect()
 workbook.close()
 #remove temporary files
-os.system("rm cnv_analysis.txt cnv_analysis_sorted.txt cnv_analysis_ChrX.txt cnv_analysis_ChrX_sorted.txt")
+os.system("rm cnv_analysis.txt cnv_analysis_sorted.txt cnv_analysis_ChrX.txt cnv_analysis_ChrX_sorted.txt cnv_analysis_ChrY.txt cnv_analysis_ChrY_sorted.txt")
 print("\nDone!!!\n")
