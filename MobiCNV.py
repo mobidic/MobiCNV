@@ -752,7 +752,7 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 	return (j,l)
 
 #worksheet for autosomes
-(start1, start2) = writing_total('Autosomes','cnv_analysis.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col)
+(start1, start2) = writing_total('Autosomes','cnv_analysis_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col)
 # print (start1, start2)
 #worksheet for ChrX
 start3 = 0
