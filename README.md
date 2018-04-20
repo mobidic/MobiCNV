@@ -75,5 +75,18 @@ The fifth column shows the mean coverage for all samples for the considered ROI,
 
 MobiCNV works with hg19 or hg38 data, even with hg18 in theory.
 
+--------------------------------------------------------------------------------
+
+**Montpellier Bioinformatique pour le Diagnostique Clinique (MoBiDiC)**
+
+*CHU de Montpellier*
+
+France
+
+![MoBiDiC](doc/img/logo-mobidic.png)
+
+[Visit our website](https://neuro-2.iurc.montp.inserm.fr/mobidic/)
+
+--------------------------------------------------------------------------------
 
 
