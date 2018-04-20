@@ -83,8 +83,6 @@ MobiCNV works with hg19 or hg38 data, even with hg18 in theory.
 
 France
 
-![MoBiDiC](doc/img/logo-mobidic.png)
-
 [Visit our website](https://neuro-2.iurc.montp.inserm.fr/mobidic/)
 
 --------------------------------------------------------------------------------
