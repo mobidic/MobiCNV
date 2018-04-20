@@ -64,8 +64,11 @@ $python MobiCNV.py -i path/to/input/directory/ -t [tsv|csv] [-p path/to/gene/pan
 
 You will soon get an Excel spreadsheet, with one summary worksheet showing remarkable events and gender predictions (if ROIs include the X chr), another woksheet for autosomes, optional supplementary worksheets for sexual chromosomes and gene panels.
 The fifth column shows the mean coverage for all samples for the considered ROI, with the following 3 colors traffic lights code:
+
 -green: mean >= 100 X
+
 -orange: 50X <= mean < 100X
+
 -red: mean < 50X
 
 ### Remark
