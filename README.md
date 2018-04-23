@@ -15,7 +15,7 @@ MobiCNV requires the [xlxswriter](http://xlsxwriter.readthedocs.io/) python modu
 
 ```bash
 $cd /where/you/want/to/install
-git clone https://github.com/mobidic/MobiCNV
+$git clone https://github.com/mobidic/MobiCNV
 ```
 ### Inputs
 
