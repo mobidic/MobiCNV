@@ -75,6 +75,79 @@ The fifth column shows the mean coverage for all samples for the considered ROI,
 
 MobiCNV works with hg19 or hg38 data, even with hg18 in theory.
 
+### [Work in progress] CNV annotation
+
+#### 1. Create master file annotation
+
+##### OMIM
+According to use OMIM license, download the gene2map.txt at https://www.omim.org/downloads/.
+
+```
+grep -v "#" genemap2.txt | cut -f9,13 > omim.tsv
+vim omim.tsv ## add header with vim #Gene_name Phenotypes
+```
+##### ExAc CNV population frequency and prediction scores
+
+First download the database from ExAc.
+
+```
+wget ftp://ftp.broadinstitute.org/pub/ExAC_release/release0.3.1/cnv/exac-final-cnv.gene.scores071316
+```
+Prepare for bedtools.
+
+```
+sed 's/ /\t/g' exac-final-cnv.gene.scores071316 > exac-final-cnv.gene.scores071316.txt ## replace empty spaces with tabs
+cut -f5- exac-final-cnv.gene.scores071316.txt > exac.genescore.txt
+vim exac.genescore.txt #change header name from gene_symbols to #Gene_name
+```
+
+#### 2. Merge all annotation into master annotation file 
+
+There is 4 files to merge :
+- genename_hg19_final.txt - genomic coordinate of genes in hg19 format with cytoband
+- gene_fullxref.txt - this file is from example folder from ANNOVAR. You can download ANNOVAR at http://www.openbioinformatics.org/annovar/annovar_download_form.php.
+- omim.tsv
+- exac.genescore.txt
+
+You need first to install pandas if needed.
+
+```bash
+pip install pandas
+```
+Use the merge function from pandas module to merge genename_hg19_final.txt, gene_fullxref.txt with OMIM and ExAc annotations. 
+
+```python
+import pandas
+
+fullxref = pandas.read_table('gene_fullxref.txt')
+omim = pandas.read_table('omim.tsv')
+
+merge = pandas.merge(fullxref,omim, on="#Gene_name", how="left", left_index=True)
+exac = pandas.read_table('exac.genescore.txt')
+
+mergeExac = pandas.merge(merge,exac, on="#Gene_name", how="left", left_index=True)
+genenames = pandas.read_table('genename_hg19_final.txt') #from ucsc ou biomart:"chr start end genename en hg19 intersecté avec hg19_cytoband.txt d'annovar"
+
+mergeFinal = pandas.merge(genenames,mergeExac, on="#Gene_name", how="left", left_index=True)
+mergeFinal.to_csv('genes_annot_hg19.txt',sep='\t')
+```
+#### 3. Adaptation for bedtools intersect
+
+```
+cut -f2- genes_annot_hg19.txt > gene_annot_hg19.bed # remove first column added by pandas.merge
+sed '1d' gene_annot_hg19.bed > gene_annot_hg19_noheader.bed # remove header
+awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "." }; 1' gene_annot_hg19_noheader.bed > gene_annot_hg19_noheader_noNA.bed # Replace empty fields with . 
+
+#selection useful columns:
+#Chr    Start   End     #Gene_name      cytoBand        Phenotypes      Disease_description     Function_description    Tissue_specificity(Uniprot)     del     dup     flag    pLi     pRec    pNull   P(HI)   P(rec)  RVIS_percentile
+awk 'BEGIN { FS = OFS = "\t" }{print $1,$2,$3,$4,$5,$21,$11,$10,$12,$31,$32,$40,$6,$7,$8,$15,$16,$18}' gene_annot_hg19_noheader_noNA.bed > gene_annot_hg19_final.bed
+```
+
+#### Dependencies
+
+bedtools, pandas
+
+
 --------------------------------------------------------------------------------
 
 **Montpellier Bioinformatique pour le Diagnostique Clinique (MoBiDiC)**
