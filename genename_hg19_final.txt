@@ -1,4 +1,4 @@
-Chromosome/scaffold name	Gene start (bp)	Gene end (bp)	Karyotype band	HGNC symbol
+Chr	Start	End	CytoBand	#Gene_name
 1	11869	14412	p36.33	DDX11L1
 1	14363	29806	p36.33	WASH7P
 1	29554	31109	p36.33	MIR1302-10
