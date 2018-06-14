@@ -238,60 +238,60 @@ if region_number_ChrX > 0:
 if region_number_ChrY > 0:
 	(per_sample_metrics_ChrY, per_region_metrics_ChrY) = compute_ratio(per_sample_metrics_ChrY, per_region_metrics_ChrY, region_number_ChrY)
 
-pp.pprint(per_region_metrics)
+#pp.pprint(per_region_metrics)
 #pp.pprint(per_region_metrics_ChrX)
-sys.exit()
+#sys.exit()
 
 
 
 
-def write_csv_file(file_in, file_out, dict_r, dict_m):
-	with open(file_in, 'w') as csv_file:
-		#csv.writer(csv_file)
-		header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
-		for coordinate in dict_r :
-			for sample_name in dict_r[coordinate]:
-				header += str(sample_name) + "_rawDoc" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_moy_exon" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_patient_normalise" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_exon_normalise" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_stdev" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_ratio" + "\t"
-			break
-		csv_file.write(header + "\n")
-		for coordinate in dict_r :
-			csv_file.write(
-				str(coordinate[0]) + "\t" +
-				str(coordinate[1]) + "\t" +
-				str(coordinate[2]) + "\t" +
-				str(coordinate[3]) + "\t" +
-				str((dict_m[coordinate]["exonMeanDoc"])) + "\t"
-				)
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(dict_r[coordinate][sample_name]["rawDoc"]) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["exonMeanOtherSamples"], 2)) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["stdev"],3)) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
-			csv_file.write("\n")
-	os.system("sort -k1.4n -k2,2n -k3,3n " + file_in + " > " + file_out)
-
-write_csv_file('cnv_analysis.txt', 'cnv_analysis_sorted.txt', per_region_metrics, dict_mean)
-if region_number_ChrX > 0:
-	write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', per_region_metrics_ChrX, dict_mean)
-if region_number_ChrY > 0:
-	write_csv_file('cnv_analysis_ChrY.txt', 'cnv_analysis_ChrY_sorted.txt', per_region_metrics_ChrY, dict_mean)
+#def write_csv_file(file_in, file_out, dict_r, dict_m):
+#	with open(file_in, 'w') as csv_file:
+#		#csv.writer(csv_file)
+#		header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
+#		for coordinate in dict_r :
+#			for sample_name in dict_r[coordinate]:
+#				header += str(sample_name) + "_rawDoc" + "\t"
+#			for sample_name in dict_r[coordinate]:
+#			 	header += str(sample_name) + "_moy_exon" + "\t"
+#			for sample_name in dict_r[coordinate]:
+#			 	header += str(sample_name) + "_patient_normalise" + "\t"
+#			for sample_name in dict_r[coordinate]:
+#			 	header += str(sample_name) + "_exon_normalise" + "\t"
+#			for sample_name in dict_r[coordinate]:
+#			 	header += str(sample_name) + "_stdev" + "\t"
+#			for sample_name in dict_r[coordinate]:
+#			 	header += str(sample_name) + "_ratio" + "\t"
+#			break
+#		csv_file.write(header + "\n")
+#		for coordinate in dict_r :
+#			csv_file.write(
+#				str(coordinate[0]) + "\t" +
+#				str(coordinate[1]) + "\t" +
+#				str(coordinate[2]) + "\t" +
+#				str(coordinate[3]) + "\t" +
+#				str((dict_m[coordinate]["exonMeanDoc"])) + "\t"
+#				)
+#			for sample_name in dict_r[coordinate] :
+#				csv_file.write(str(dict_r[coordinate][sample_name]["rawDoc"]) + "\t")
+#			for sample_name in dict_r[coordinate] :
+#				csv_file.write(str(round(dict_r[coordinate][sample_name]["exonMeanOtherSamples"], 2)) + "\t")
+#			for sample_name in dict_r[coordinate] :
+#				csv_file.write(str(round(dict_r[coordinate][sample_name]["patient_normalise"],2)) + "\t")
+#			for sample_name in dict_r[coordinate] :
+#				csv_file.write(str(round(dict_r[coordinate][sample_name]["exon_normalise"],2)) + "\t")
+#			for sample_name in dict_r[coordinate] :
+#				csv_file.write(str(round(dict_r[coordinate][sample_name]["stdev"],3)) + "\t")
+#			for sample_name in dict_r[coordinate] :
+#				csv_file.write(str(round(dict_r[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
+#			csv_file.write("\n")
+#	os.system("sort -k1.4n -k2,2n -k3,3n " + file_in + " > " + file_out)
+#
+#write_csv_file('cnv_analysis.txt', 'cnv_analysis_sorted.txt', per_region_metrics, dict_mean)
+#if region_number_ChrX > 0:
+#	write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', per_region_metrics_ChrX, dict_mean)
+#if region_number_ChrY > 0:
+#	write_csv_file('cnv_analysis_ChrY.txt', 'cnv_analysis_ChrY_sorted.txt', per_region_metrics_ChrY, dict_mean)
 
 # with open('cnv_analysis.txt', 'w') as csv_file:
 # 	writer = csv.writer(csv_file)
@@ -371,7 +371,7 @@ if region_number_ChrY > 0:
 #
 
 
-
+#We build a small list of genes of interest
 ###########
 if (Panel != False):
 	panel = open(Panel, 'r')
@@ -382,7 +382,7 @@ if (Panel != False):
 ###########
 
 
-### Excel convertion
+### Excel conversion
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -406,17 +406,17 @@ format2 = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
 # summary.set_row(0, 20, style5)
 # summary.set_column('A:E', 15, style5)
 # summary.set_column('D:D', 25)
-last_col = number_of_file*6 + 4
-#sample number x number of data blocks + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
-last_col_2_hide = number_of_file*5 + 4
-#sample number x number of data blocks to hide + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
+last_col = number_of_file*6 + 5
+#sample number x number of data blocks + 6 first cols to show - 1 coz numbering begins at 0 (A = 0)
+last_col_2_hide = number_of_file*5 + 5
+#sample number x number of data blocks to hide + 6 first cols to show - 1 coz numbering begins at 0 (A = 0)
 
 def format_sheet(sheet, last_col):
 	sheet.freeze_panes(1, 5)
 	sheet.set_row(0, 20, style5)
-	sheet.set_column('A:E', 15, style5)
-	sheet.set_column('D:D', 25)
-	sheet.set_column('E:E', 15, style6)
+	sheet.set_column('A:F', 15, style5)
+	sheet.set_column('E:E', 25)
+	sheet.set_column('F:F', 15, style6)
 	sheet.set_column(last_col+2, last_col+2, 15)
 	sheet.set_column(last_col+3, last_col+3, 15)
 	sheet.write(3, last_col+2, 'Legend:', style5)
@@ -448,7 +448,6 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 		start = 2
 	cell_range = "E" + str(start) + ":T" + str(end)
 	#http://xlsxwriter.readthedocs.io/working_with_conditional_formats.html
-	#should work but does not: Excel does not recognize cell type as valid for 3 traffic lights- even using set_num_format
 	worksheet.conditional_format(
 		cell_range,
 		{'type': 'icon_set',
@@ -465,6 +464,53 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 #                                           'criteria': '<',
 #                                           'value': threshold,
 #                                           'format': format1})
+
+
+
+def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm):
+	#sheet creation
+	worksheet = workbook.add_worksheet(str(name))
+	format_sheet(worksheet, last_col)
+	#i=first row
+	i=1
+	#dict iterations
+	for region in sorted(prm):
+		#j=col
+		j=0
+		for row_header in region:
+			worksheet.write(i, j, row_header)
+			j+=1
+		for sample in prm[region]:
+			j+=1
+			worksheet.write(i, j, prm[region][sample]["rawDoc"])
+			worksheet.write(i, j+number_of_file, prm[region][sample]["exonMeanOtherSamples"])
+			worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
+			worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedMeanOtherSamples"])
+			worksheet.write(i, j+(3*number_of_file), prm[region][sample]["ratioStdev"])
+			worksheet.write(i, j+(4*number_of_file), prm[region][sample]["normalisedRatio"])
+			last_sample = sample
+		#mean global doc for region
+		worksheet.write(i, 5, prm[region][last_sample]["exonMeanDoc"])
+		i+=1
+
+
+
+	worksheet.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+	add_conditionnal_format(worksheet, 50, 2, len(list(prm)))
+	worksheet.protect()
+
+print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_sample_metrics, per_region_metrics)
+
+workbook.close()
+
+
+sys.exit()
+
+
+
+
+
+
 
 def write_small_worksheets(selected, start, first_row, small_worksheet, col_list, last_col, regex_r, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz):
 	#called inside writing_total to wirte summary and panel sheets
