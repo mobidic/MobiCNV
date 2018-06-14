@@ -498,7 +498,17 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm):
 				worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
 				worksheet.write(i, j+(3*number_of_file), prm[region][sample]["normalisedMeanOtherSamples"])
 				worksheet.write(i, j+(4*number_of_file), prm[region][sample]["ratioStdev"])
-				worksheet.write(i, j+(5*number_of_file), prm[region][sample]["normalisedRatio"])
+				#define cell style - default style5: just bold
+				cell_style = style5
+				if prm[region][sample]["MobiAdvice"] == "HomDel":
+					cell_style = style1
+				elif prm[region][sample]["MobiAdvice"] == "HetDel":
+					cell_style = style2
+				elif prm[region][sample]["MobiAdvice"] == "HetDup":
+					cell_style = style3
+				elif prm[region][sample]["MobiAdvice"] == "HomDup":
+					cell_style = style4
+				worksheet.write(i, j+(5*number_of_file), prm[region][sample]["normalisedRatio"], cell_style)
 				last_sample = sample
 			#mean global doc for region
 			worksheet.write(i, 5, prm[region][last_sample]["regionMeanDoc"])
