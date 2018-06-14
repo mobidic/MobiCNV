@@ -150,9 +150,9 @@ def exon_mean(prm):
 					total += prm[coordinate][sample_other]['rawDoc']
 					sample_number +=1
 				full_total += prm[coordinate][sample_other]['rawDoc']
-			#exonMeanOtherSamples = total / sample_number
-			prm[coordinate][sample_name]["exonMeanDoc"] = int(full_total / (sample_number+1))
-			prm[coordinate][sample_name]["exonMeanOtherSamples"] = round(float(total / sample_number), 3)
+			#regionMeanOtherSamples = total / sample_number
+			prm[coordinate][sample_name]["regionMeanDoc"] = int(full_total / (sample_number+1))
+			prm[coordinate][sample_name]["regionMeanOtherSamples"] = round(float(total / sample_number), 3)
 	return(prm)
 
 per_region_metrics = exon_mean(per_region_metrics)
@@ -168,19 +168,19 @@ if region_number_ChrY > 0:
 
 
 def compute_ratio(psm, prm, region_number):
-	#loop to compute per region the mean coverage of all exons except the ROI
+	#loop to compute per region the mean coverage of all regions except the ROI
 	for sample_name in psm:
-		psm[sample_name]["exonMeanOtherSamplesSum"] = 0
+		psm[sample_name]["regionMeanOtherSamplesSum"] = 0
 		for coordinate in prm :
 			#compute mean sum per exon
-			psm[sample_name]["exonMeanOtherSamplesSum"] += prm[coordinate][sample_name]["exonMeanOtherSamples"]
+			psm[sample_name]["regionMeanOtherSamplesSum"] += prm[coordinate][sample_name]["regionMeanOtherSamples"]
 		#mean for all samples except current sample
-		psm[sample_name]["totalMeanOtherSample"] = round(psm[sample_name]["exonMeanOtherSamplesSum"] / region_number, 3)
+		psm[sample_name]["totalMeanOtherSample"] = round(psm[sample_name]["regionMeanOtherSamplesSum"] / region_number, 3)
 	#loop to compute normalised values per region (vakue for the ROI and for all others excluding ROI)
 	for sample_name in psm:	
 		for coordinate in prm :
 			#normalisation per exon
-			prm[coordinate][sample_name]["normalisedMeanOtherSamples"] = round(prm[coordinate][sample_name]["exonMeanOtherSamples"] / psm[sample_name]["totalMeanOtherSample"], 3)
+			prm[coordinate][sample_name]["normalisedMeanOtherSamples"] = round(prm[coordinate][sample_name]["regionMeanOtherSamples"] / psm[sample_name]["totalMeanOtherSample"], 3)
 			prm[coordinate][sample_name]["normalisedRegion"] = round(float(prm[coordinate][sample_name]['rawDoc'] / psm[sample_name]["meanRawDoc"]), 3)
 	#computes final ratio
 	for coordinate in prm :
@@ -402,17 +402,13 @@ format1 = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
 # Add a format. Green fill with dark green text.
 format2 = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
 
-# summary.freeze_panes(1, 5)
-# summary.set_row(0, 20, style5)
-# summary.set_column('A:E', 15, style5)
-# summary.set_column('D:D', 25)
 last_col = number_of_file*6 + 5
 #sample number x number of data blocks + 6 first cols to show - 1 coz numbering begins at 0 (A = 0)
 last_col_2_hide = number_of_file*5 + 5
 #sample number x number of data blocks to hide + 6 first cols to show - 1 coz numbering begins at 0 (A = 0)
 
 def format_sheet(sheet, last_col):
-	sheet.freeze_panes(1, 5)
+	sheet.freeze_panes(1, 6)
 	sheet.set_row(0, 20, style5)
 	sheet.set_column('A:F', 15, style5)
 	sheet.set_column('E:E', 25)
@@ -446,7 +442,7 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 	#add a conditionnal format to raw DoC
 	if (start == 0):
 		start = 2
-	cell_range = "E" + str(start) + ":E" + str(end)
+	cell_range = "F" + str(start) + ":F" + str(end)
 	#http://xlsxwriter.readthedocs.io/working_with_conditional_formats.html
 	worksheet.conditional_format(
 		cell_range,
@@ -472,34 +468,49 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm):
 	worksheet = workbook.add_worksheet(str(name))
 	format_sheet(worksheet, last_col)
 	#i=first row
-	i=1
+	i=0
 	#dict iterations
 	for region in sorted(prm):
 		#j=col
 		j=0
-		for row_header in region:
-			worksheet.write(i, j, row_header)
-			j+=1
-		for sample in prm[region]:
-			j+=1
-			worksheet.write(i, j, prm[region][sample]["rawDoc"])
-			worksheet.write(i, j+number_of_file, prm[region][sample]["exonMeanOtherSamples"])
-			worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
-			worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedMeanOtherSamples"])
-			worksheet.write(i, j+(3*number_of_file), prm[region][sample]["ratioStdev"])
-			worksheet.write(i, j+(4*number_of_file), prm[region][sample]["normalisedRatio"])
-			last_sample = sample
-		#mean global doc for region
-		worksheet.write(i, 5, prm[region][last_sample]["exonMeanDoc"])
+		if i == 0:
+			#sheet headers
+			headers = ("Region Number", "Chromosome", "Start", "End", "Annotation", "Mean DoC")
+			for text in headers:
+				worksheet.write(i, j, text, style5)
+				j+=1
+			for sample in prm[region]:
+				worksheet.write(i, j, sample + "_rawDoc", style5)
+				worksheet.write(i, j+number_of_file, sample + "_regionMeanOtherSamples", style5)
+				worksheet.write(i, j+(2*number_of_file), sample + "_normalisedRegion", style5)
+				worksheet.write(i, j+(3*number_of_file), sample + "_normalisedMeanOtherSamples", style5)
+				worksheet.write(i, j+(4*number_of_file), sample + "_ratioStdev", style5)
+				worksheet.write(i, j+(5*number_of_file), sample + "_normalisedRatio", style5)
+				j+=1
+		else:
+			for row_header in region:
+				worksheet.write(i, j, row_header)
+				j+=1
+			for sample in prm[region]:
+				j+=1
+				worksheet.write(i, j, prm[region][sample]["rawDoc"])
+				worksheet.write(i, j+number_of_file, prm[region][sample]["regionMeanOtherSamples"])
+				worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
+				worksheet.write(i, j+(3*number_of_file), prm[region][sample]["normalisedMeanOtherSamples"])
+				worksheet.write(i, j+(4*number_of_file), prm[region][sample]["ratioStdev"])
+				worksheet.write(i, j+(5*number_of_file), prm[region][sample]["normalisedRatio"])
+				last_sample = sample
+			#mean global doc for region
+			worksheet.write(i, 5, prm[region][last_sample]["regionMeanDoc"])
 		i+=1
 
 
 
-	worksheet.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+	worksheet.set_column(6, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
 	add_conditionnal_format(worksheet, 50, 2, len(list(prm)))
 	worksheet.protect()
 
-print("Building Excel File...")
+print("\nBuilding Excel File:")
 print("Autosomes worksheet...")
 print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_sample_metrics, per_region_metrics)
 
