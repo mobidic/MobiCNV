@@ -446,7 +446,7 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 	#add a conditionnal format to raw DoC
 	if (start == 0):
 		start = 2
-	cell_range = "E" + str(start) + ":T" + str(end)
+	cell_range = "E" + str(start) + ":E" + str(end)
 	#http://xlsxwriter.readthedocs.io/working_with_conditional_formats.html
 	worksheet.conditional_format(
 		cell_range,
@@ -499,6 +499,8 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm):
 	add_conditionnal_format(worksheet, 50, 2, len(list(prm)))
 	worksheet.protect()
 
+print("Building Excel File...")
+print("Autosomes worksheet...")
 print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_sample_metrics, per_region_metrics)
 
 workbook.close()
