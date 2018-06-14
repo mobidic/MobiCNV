@@ -463,7 +463,7 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 
 
 
-def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm):
+def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm, quality):
 	#sheet creation
 	worksheet = workbook.add_worksheet(str(name))
 	format_sheet(worksheet, last_col)
@@ -522,8 +522,16 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm):
 
 print("\nBuilding Excel File:")
 print("Autosomes worksheet...")
-print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_sample_metrics, per_region_metrics)
+print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_sample_metrics, per_region_metrics, 'global')
 
+if region_number_ChrX > 0:
+	print("ChrX worksheet...")
+	print_worksheet('Chromosome X', last_col, last_col_2_hide, workbook, per_sample_metrics_ChrX, per_region_metrics_ChrX, 'global')
+if region_number_ChrY > 0:
+	print("ChrY worksheet...")
+	print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_sample_metrics_ChrY, per_region_metrics_ChrY, 'global')
+
+print("Summary worksheet")
 workbook.close()
 
 
