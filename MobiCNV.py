@@ -427,12 +427,12 @@ def format_sheet(sheet, last_col):
 
 
 #worksheet summary to get only interesting stuff
-summary = workbook.add_worksheet(str("Summary"))
-format_sheet(summary, last_col)
+#summary = workbook.add_worksheet(str("Summary"))
+#format_sheet(summary, last_col)
 
-if (Panel != False):
-	worksheet2 = workbook.add_worksheet(str("Panel"))
-	format_sheet(worksheet2, last_col)
+#if (Panel != False):
+#	worksheet2 = workbook.add_worksheet(str("Panel"))
+#	format_sheet(worksheet2, last_col)
 	# worksheet2.freeze_panes(1, 5)
 	# worksheet2.set_row(0, 20, style5)
 	# worksheet2.set_column('A:E', 15, style5)
@@ -463,7 +463,7 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 
 
 
-def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm, quality):
+def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, reduced_regions):
 	#sheet creation
 	worksheet = workbook.add_worksheet(str(name))
 	format_sheet(worksheet, last_col)
@@ -500,6 +500,9 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm, quality
 				worksheet.write(i, j+(4*number_of_file), prm[region][sample]["ratioStdev"])
 				#define cell style - default style5: just bold
 				cell_style = style5
+				if quality == "global":
+					reduced_regions[region] = {sample: prm[region][sample]}
+
 				if prm[region][sample]["MobiAdvice"] == "HomDel":
 					cell_style = style1
 				elif prm[region][sample]["MobiAdvice"] == "HetDel":
@@ -514,24 +517,29 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, psn, prm, quality
 			worksheet.write(i, 5, prm[region][last_sample]["regionMeanDoc"])
 		i+=1
 
-
-
 	worksheet.set_column(6, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
 	add_conditionnal_format(worksheet, 50, 2, len(list(prm)))
 	worksheet.protect()
 
+	if quality == "global":
+		return reduced_regions
+
 print("\nBuilding Excel File:")
 print("Autosomes worksheet...")
-print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_sample_metrics, per_region_metrics, 'global')
+summary_regions = {}
+summary_regions = print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_region_metrics, 'global', summary_regions)
 
 if region_number_ChrX > 0:
 	print("ChrX worksheet...")
-	print_worksheet('Chromosome X', last_col, last_col_2_hide, workbook, per_sample_metrics_ChrX, per_region_metrics_ChrX, 'global')
+	summary_regions = print_worksheet('Chromosome X', last_col, last_col_2_hide, workbook, per_region_metrics_ChrX, 'global', summary_regions)
 if region_number_ChrY > 0:
 	print("ChrY worksheet...")
-	print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_sample_metrics_ChrY, per_region_metrics_ChrY, 'global')
+	summary_regions = print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_region_metrics_ChrY, 'global', summary_regions)
 
-print("Summary worksheet")
+print("Summary worksheet...")
+print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'reduced', '')
+
+
 workbook.close()
 
 
