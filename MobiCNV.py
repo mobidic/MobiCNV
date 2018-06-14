@@ -42,38 +42,37 @@ if Panel == '':
 
 filelist = os.listdir(Path)
 number_of_file = 0
-sample_name = []
-counter = 0
-dict_regions = {}
-dict_patients = {}
+region_number = 0
+per_region_metrics = {}
+per_sample_metrics = {}
 dict_mean = {}
 dict_gender = {}
 total_mean = 0
-dict_regions_ChrX = {}
-dict_patients_ChrX = {}
+per_region_metrics_ChrX = {}
+per_sample_metrics_ChrX = {}
 total_mean_ChrX = 0
-counter_ChrX = 0
-dict_regions_ChrY = {}
-dict_patients_ChrY = {}
+region_number_ChrX = 0
+per_region_metrics_ChrY = {}
+per_sample_metrics_ChrY = {}
 total_mean_ChrY = 0
-counter_ChrY = 0
+region_number_ChrY = 0
 
 print("\nFiles that will be considered:\n")
 
 
-def build_dict(baseName, line, counter, dict_r, dict_p):
-	if(baseName not in dict_p):
-		dict_p[baseName] = {"sum_patient": float(line[4])}
+def build_dict(baseName, line, region_number, prm, psm, key):
+	if(baseName not in psm):
+		psm[baseName] = {"rawDocSum": float(line[4])}
 	else:
-		dict_p[baseName]["sum_patient"] += float(line[4])
-	# création dictionnaire avec les valeurs bruts
-	coordinate = (line[0],line[1],line[2], line[3])
-	if coordinate not in dict_r :
-		counter += 1
-		dict_r[coordinate] = {baseName : {"brut" : float(line[4])}}
+		psm[baseName]["rawDocSum"] += float(line[4])
+	# création dictionnaire avec les valeurs rawDocs
+	coordinate = (key,line[0],line[1],line[2],line[3])
+	if coordinate not in prm :
+		region_number += 1
+		prm[coordinate] = {baseName : {"rawDoc" : float(line[4])}}
 	else :
-		dict_r[coordinate][baseName] = {"brut" : float(line[4])}	
-	return(counter, dict_r, dict_p)
+		prm[coordinate][baseName] = {"rawDoc" : float(line[4])}	
+	return(region_number, prm, psm)
 
 #############
 for i in filelist:
@@ -81,81 +80,65 @@ for i in filelist:
 	regex = re.compile(r'^([^\.].+)[\._]coverage\.%s$'%ext)
 	matchObj = regex.search(os.path.basename(i))
 	if(matchObj):
-	#if i.endswith("coverage." + ext):  # You could also add "and i.startswith('f')
+		#for each file
 		print(i)
 		number_of_file += 1
-	#	regex = re.compile(r'^[^\.](.+)[\._]coverage\.[tc]sv$')
-	#	matchObj = regex.search(os.path.basename(i))
-	#	if(matchObj):
 		baseName = matchObj.group(1)
-		sample_name.append(baseName)
-	#	else:
-	#		sys.exit("Error [1] : file \'" + i + "\' does not respect format (sample.coverage.tsv).")
-	####
-
+		keyAuto = keyX = keyY = 1
+		#we read and each line is converted into a dictionnary
+		#2 dicts, one per sample for global metrics and one more detailed for per region metrics
+		#Each dict type (region, sample) is in fact composed of up to 3 dicts, one for autosomes, one for chrX, and one for chrY
+		#coz more simple to handle when writing in separate tabs in excel
 		with open(Path + i, 'r') as csvfile:
 			csvreader = csv.reader(csvfile, delimiter =delim)
 			for line in csvreader:
 				line = [w.replace(',', '.') for w in line]
 				expression = r'^.*#.*$' # remove header
+				#autosomes
 				if not re.match(expression, line[0]) and line[0] != "chrX" and line[0] != "chrY":
-					(counter, dict_regions, dict_patients) = build_dict(baseName, line, counter, dict_regions, dict_patients)
-					#création moyenne par patient
-					#if(baseName not in dict_patients):
-					#	dict_patients[baseName] = {"sum_patient": float(line[4])}
-					#else:
-					#	dict_patients[baseName]["sum_patient"] += float(line[4])
-					# création dictionnaire avec les valeurs bruts
-					#coordinate = (line[0],line[1],line[2], line[3])
-					#if coordinate not in dict_regions :
-					#	counter += 1
-					#	dict_regions[coordinate] = {baseName : {"brut" : float(line[4])}}
-					#else :
-					#	dict_regions[coordinate][baseName] = {"brut" : float(line[4])}
+					(region_number, per_region_metrics, per_sample_metrics) = build_dict(baseName, line, region_number, per_region_metrics, per_sample_metrics, keyAuto)
+					keyAuto+=1
+				#chrX
 				elif not re.match(expression, line[0]) and (line[0] == "chrX" or line[0] == "X"):
-						(counter_ChrX, dict_regions_ChrX, dict_patients_ChrX) = build_dict(baseName, line, counter_ChrX, dict_regions_ChrX, dict_patients_ChrX)
+					(region_number_ChrX, per_region_metrics_ChrX, per_sample_metrics_ChrX) = build_dict(baseName, line, region_number_ChrX, per_region_metrics_ChrX, per_sample_metrics_ChrX, keyX)
+					keyX+=1
+				#chrY
 				elif not re.match(expression, line[0]) and (line[0] == "chrY" or line[0] == "Y"):
-						(counter_ChrY, dict_regions_ChrY, dict_patients_ChrY) = build_dict(baseName, line, counter_ChrY, dict_regions_ChrY, dict_patients_ChrY)
-						# if(baseName not in dict_patients_ChrX):
-						# 	dict_patients_ChrX[baseName] = {"sum_patient": float(line[4])}
-						# else:
-						# 	dict_patients_ChrX[baseName]["sum_patient"] += float(line[4])
-						# # création dictionnaire avec les valeurs bruts
-						# coordinate = (line[0],line[1],line[2],line[3])
-						# if coordinate not in dict_regions_ChrX :
-						# 	counter_ChrX += 1
-						# 	dict_regions_ChrX[coordinate] = {baseName : {"brut" : float(line[4])}}
-						# else :
-						# 	dict_regions_ChrX[coordinate][baseName] = {"brut" : float(line[4])}
-# faire pareil pour ChrY
+					(region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY) = build_dict(baseName, line, region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY, keyY)
+					keyY+=1
+
 #############
 
 #############
+#pp.pprint(per_sample_metrics)
+#pp.pprint(per_region_metrics_ChrX)
+#sys.exit()
+
 
 # Itération sur le dictionnaire patient pour calculer la moyenne par  patient
-
-# def sample_mean(dico):
-# 	for sample_name in dict_patients:
-
-for sample_name in dict_patients:
-		dict_patients[sample_name]["moyenne_patient"] = dict_patients[sample_name]["sum_patient"]/ counter
-# FOR X
-if counter_ChrX > 0:
-	for sample_name in dict_patients_ChrX:
-			dict_patients_ChrX[sample_name]["moyenne_patient"] = dict_patients_ChrX[sample_name]["sum_patient"]/ counter_ChrX
-			dict_gender[sample_name] = {"xratio": float(dict_patients_ChrX[sample_name]["moyenne_patient"] / dict_patients[sample_name]["moyenne_patient"]),
-										"gender": "male"}
-			if (dict_gender[sample_name]["xratio"] > 0.65):
-				dict_gender[sample_name]["gender"] = "female"
-if counter_ChrY > 0:
-	for sample_name in dict_patients_ChrY:
-			dict_patients_ChrY[sample_name]["moyenne_patient"] = dict_patients_ChrY[sample_name]["sum_patient"]/ counter_ChrY
-			#print(sample_name + " " + str(dict_patients_ChrY[sample_name]["moyenne_patient"]) + " " + dict_gender[sample_name]["gender"])
-			if (dict_patients_ChrY[sample_name]["moyenne_patient"] > 1 and dict_gender[sample_name]["gender"] != "male"):
+for sample_name in per_sample_metrics:
+		per_sample_metrics[sample_name]["meanRawDoc"] = per_sample_metrics[sample_name]["rawDocSum"]/ region_number
+# FOR X and in addition we compute on the fly the x ratio which determinates the gender
+#then the ratio and predicted gender are added to the per_sample_metrics_chrX dict ONLY
+# FOR Y we look for Y regions in female samples and print a warning if found unconsistant
+if region_number_ChrX > 0:
+	for sample_name in per_sample_metrics_ChrX:
+			per_sample_metrics_ChrX[sample_name]["meanRawDoc"] = round(per_sample_metrics_ChrX[sample_name]["rawDocSum"]/ region_number_ChrX, 3)
+			per_sample_metrics_ChrX[sample_name]["xratio"] = round(float(per_sample_metrics_ChrX[sample_name]["meanRawDoc"] / per_sample_metrics[sample_name]["meanRawDoc"]), 3)
+			per_sample_metrics_ChrX[sample_name]["gender"] = "male"
+			if (per_sample_metrics_ChrX[sample_name]["xratio"] > 0.65):
+				per_sample_metrics_ChrX[sample_name]["gender"] = "female"
+if region_number_ChrY > 0:
+	for sample_name in per_sample_metrics_ChrY:
+			per_sample_metrics_ChrY[sample_name]["meanRawDoc"] = per_sample_metrics_ChrY[sample_name]["rawDocSum"]/ region_number_ChrY
+			if (per_sample_metrics_ChrY[sample_name]["meanRawDoc"] > 1 and per_sample_metrics_ChrX[sample_name]["gender"] != "male"):
 				print("\n\nWARNING Gender inconsistancy for " + sample_name + "reads on Y chr with X ratio > 0.65\n\n")
-				dict_gender[sample_name]["gender"] = "male/female"
+				per_sample_metrics_ChrX[sample_name]["gender"] = "male/female"
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
+
+pp.pprint(per_sample_metrics_ChrX)
+ys.exit()
 
 def exon_mean(dict_r, dict_m):
 	for coordinate in dict_r :
@@ -165,72 +148,72 @@ def exon_mean(dict_r, dict_m):
 			sample_number = 0
 			for sample_other in dict_r[coordinate]:
 				if sample_other != sample_name:
-					total += dict_r[coordinate][sample_other]['brut']
+					total += dict_r[coordinate][sample_other]['rawDoc']
 					sample_number +=1
-				full_total += dict_r[coordinate][sample_other]['brut']
+				full_total += dict_r[coordinate][sample_other]['rawDoc']
 			#moyenne_exon = total / sample_number
 			dict_m[coordinate] = {"exon_mean_doc": int(full_total / (sample_number+1))}
 			dict_r[coordinate][sample_name]["moyenne_exon"] = float(total / sample_number)
 	return(dict_r, dict_m)
 
-(dict_regions, dict_mean) = exon_mean(dict_regions, dict_mean)
-if counter_ChrX > 0:
-	(dict_regions_ChrX, dict_mean) = exon_mean(dict_regions_ChrX, dict_mean)
-if counter_ChrY > 0:
-	(dict_regions_ChrY, dict_mean) = exon_mean(dict_regions_ChrY, dict_mean)
-#pp.pprint(dict_regions)
+(per_region_metrics, dict_mean) = exon_mean(per_region_metrics, dict_mean)
+if region_number_ChrX > 0:
+	(per_region_metrics_ChrX, dict_mean) = exon_mean(per_region_metrics_ChrX, dict_mean)
+if region_number_ChrY > 0:
+	(per_region_metrics_ChrY, dict_mean) = exon_mean(per_region_metrics_ChrY, dict_mean)
+#pp.pprint(per_region_metrics)
 
-# for coordinate in dict_regions :
-# 	for sample_name in dict_regions[coordinate]:
+# for coordinate in per_region_metrics :
+# 	for sample_name in per_region_metrics[coordinate]:
 # 		total = 0
 # 		full_total = 0
 # 		sample_number = 0
-# 		for sample_other in dict_regions[coordinate]:
+# 		for sample_other in per_region_metrics[coordinate]:
 # 			if sample_other != sample_name:
-# 				total += dict_regions[coordinate][sample_other]['brut']
+# 				total += per_region_metrics[coordinate][sample_other]['rawDoc']
 # 				sample_number +=1
-# 			full_total += dict_regions[coordinate][sample_other]['brut']
+# 			full_total += per_region_metrics[coordinate][sample_other]['rawDoc']
 # 		moyenne_exon = total / sample_number
 # 		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
-# 		dict_regions[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
+# 		per_region_metrics[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
 # 
 # # FOR X
-# for coordinate in dict_regions_ChrX :
-# 	for sample_name in dict_regions_ChrX[coordinate]:
+# for coordinate in per_region_metrics_ChrX :
+# 	for sample_name in per_region_metrics_ChrX[coordinate]:
 # 		total = 0
 # 		full_total = 0
 # 		sample_number = 0
-# 		for sample_other in dict_regions_ChrX[coordinate]:
+# 		for sample_other in per_region_metrics_ChrX[coordinate]:
 # 			if sample_other != sample_name:
-# 				total += dict_regions_ChrX[coordinate][sample_other]['brut']
+# 				total += per_region_metrics_ChrX[coordinate][sample_other]['rawDoc']
 # 				sample_number +=1
-# 			full_total += dict_regions_ChrX[coordinate][sample_other]['brut']
+# 			full_total += per_region_metrics_ChrX[coordinate][sample_other]['rawDoc']
 # 		moyenne_exon = total / sample_number
 # 		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
-# 		dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
+# 		per_region_metrics_ChrX[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
 
 #############
 # Itération sur le dictionnaire régions pour calculer la somme moyenne par patient
 # sauf pour les exons du patient - Somme ajoutée dans le dict patients
 
 
-def compute_ratio(dict_p, dict_r, counter):
+def compute_ratio(dict_p, dict_r, region_number):
 	for sample_name in dict_p:
 		dict_p[sample_name]["somme_moyenne_exon"] = 0
 		for coordinate in dict_r :
 			#compute mean sum per exon
 			dict_p[sample_name]["somme_moyenne_exon"] += dict_r[coordinate][sample_name]["moyenne_exon"]
 		#mean for all samples except current sample
-		dict_p[sample_name]["total_mean_sans_le_patient"] = dict_p[sample_name]["somme_moyenne_exon"] / counter
+		dict_p[sample_name]["total_mean_sans_le_patient"] = dict_p[sample_name]["somme_moyenne_exon"] / region_number
 	for sample_name in dict_p:	
 		for coordinate in dict_r :
 			#normalisation per exon
 			dict_r[coordinate][sample_name]["exon_normalise"] = dict_r[coordinate][sample_name]["moyenne_exon"] / dict_p[sample_name]["total_mean_sans_le_patient"]
 	for coordinate in dict_r :	
 		for sample_name in dict_r[coordinate]:
-			#patient_normalise = dict_regions[coordinate][sample_name]['brut'] / dict_patients[sample_name]["moyenne_patient"]
+			#patient_normalise = per_region_metrics[coordinate][sample_name]['rawDoc'] / per_sample_metrics[sample_name]["meanRawDoc"]
 			#normalisation per patient: exon DoC / mean all patients
-			dict_r[coordinate][sample_name]["patient_normalise"] = float(dict_r[coordinate][sample_name]['brut'] / dict_p[sample_name]["moyenne_patient"])
+			dict_r[coordinate][sample_name]["patient_normalise"] = float(dict_r[coordinate][sample_name]['rawDoc'] / dict_p[sample_name]["meanRawDoc"])
 	for coordinate in dict_r :
 		for sample_name in dict_r[coordinate]:
 			try :
@@ -238,106 +221,22 @@ def compute_ratio(dict_p, dict_r, counter):
 			except ZeroDivisionError :
 				ratio_normalise = float(0)
 			dict_r[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
+			std_dev=[]
+	for coordinate in dict_r :
+	 	for sample_name in dict_r[coordinate]:
+	 		std_dev=[]
+	 		for sample_name2 in dict_r[coordinate]:
+	 			if(sample_name != sample_name2):
+	 				std_dev.append(dict_r[coordinate][sample_name2]["ratio_normalise"])
+	 		dict_r[coordinate][sample_name]["stdev"]=np.std(std_dev)
 	return (dict_p, dict_r)
 
-(dict_patients, dict_regions) = compute_ratio(dict_patients, dict_regions, counter)
-if counter_ChrX > 0:
-	(dict_patients_ChrX, dict_regions_ChrX) = compute_ratio(dict_patients_ChrX, dict_regions_ChrX, counter_ChrX)
-if counter_ChrY > 0:
-	(dict_patients_ChrY, dict_regions_ChrY) = compute_ratio(dict_patients_ChrY, dict_regions_ChrY, counter_ChrY)
-#pp.pprint(dict_regions)
-#pp.pprint(dict_regions_ChrX)
-# 
-# for sample_name in dict_patients:
-# 	dict_patients[sample_name]["somme_moyenne_exon"] = 0
-# 	for coordinate in dict_regions :
-# 		dict_patients[sample_name]["somme_moyenne_exon"] += dict_regions[coordinate][sample_name]["moyenne_exon"]
-# 	dict_patients[sample_name]["total_mean_sans_le_patient"] = dict_patients [sample_name]["somme_moyenne_exon"] / counter
-# #for sample_name in dict_patients:
-# #	dict_patients[sample_name]["total_mean_sans_le_patient"] = dict_patients [sample_name]["somme_moyenne_exon"] / counter
-# 
-# # FOR X
-# for sample_name in dict_patients_ChrX:
-# 	dict_patients_ChrX[sample_name]["somme_moyenne_exon"] = 0
-# 	for coordinate in dict_regions_ChrX :
-# 		dict_patients_ChrX[sample_name]["somme_moyenne_exon"] += dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"]
-# 	dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"] = dict_patients_ChrX [sample_name]["somme_moyenne_exon"] / counter_ChrX
-# 
-# #for sample_name in dict_patients_ChrX:
-# #	dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"] = dict_patients_ChrX [sample_name]["somme_moyenne_exon"] / counter_ChrX
-# 
-# #############
-# # Itération sur le dictionnaire régions pour ajouter la valeur "exon_normalise"
-# # Moyenne exon / Moyenne tota
-# #@@@@@@@@@@@@@@@@@@@
-# #@@@@@@@@@@@@@@@@@@@
-# #@@@@@@@@@@@@@@@@@@@
-# #@@@@@@@@@@@@@@@@@@@
-# for sample_name in dict_patients:
-# 	for coordinate in dict_regions :
-# 		dict_regions [coordinate][sample_name]["exon_normalise"] = dict_regions[coordinate][sample_name]["moyenne_exon"] / dict_patients[sample_name]["total_mean_sans_le_patient"]
-# 
-# # FOR X
-# 
-# for sample_name in dict_patients_ChrX:
-# 	for coordinate in dict_regions_ChrX :
-# 		dict_regions_ChrX [coordinate][sample_name]["exon_normalise"] = dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] / dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"]
-# 
-# 
-# 
-# #############
-# # Normalisation par patient : valeur couverture exon / moyenne patient
-# 
-# for coordinate in dict_regions :
-# 	for sample_name in dict_regions[coordinate]:
-# 		patient_normalise = dict_regions[coordinate][sample_name]['brut'] / dict_patients[sample_name]["moyenne_patient"]
-# 		dict_regions[coordinate][sample_name]["patient_normalise"] = float(patient_normalise)
-# 
-# # FOR X
-# 
-# for coordinate in dict_regions_ChrX :
-# 	for sample_name in dict_regions_ChrX[coordinate]:
-# 		patient_normalise = dict_regions_ChrX[coordinate][sample_name]['brut'] / dict_patients_ChrX[sample_name]["moyenne_patient"]
-# 		dict_regions_ChrX[coordinate][sample_name]["patient_normalise"] = float(patient_normalise)
+(per_sample_metrics, per_region_metrics) = compute_ratio(per_sample_metrics, per_region_metrics, region_number)
+if region_number_ChrX > 0:
+	(per_sample_metrics_ChrX, per_region_metrics_ChrX) = compute_ratio(per_sample_metrics_ChrX, per_region_metrics_ChrX, region_number_ChrX)
+if region_number_ChrY > 0:
+	(per_sample_metrics_ChrY, per_region_metrics_ChrY) = compute_ratio(per_sample_metrics_ChrY, per_region_metrics_ChrY, region_number_ChrY)
 
-#############
-
-# Calcul ratio normalise
-
-# def compute_ratio(dict_r):
-# 	for coordinate in dict_r :
-# 		for sample_name in dict_r[coordinate]:
-# 			try :
-# 				ratio_normalise = float(dict_r[coordinate][sample_name]["patient_normalise"]) / float(dict_r[coordinate][sample_name]["exon_normalise"])
-# 			except ZeroDivisionError :
-# 				ratio_normalise = float(0)
-# 			dict_r[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
-# 	return dict_r
-# 
-# dict_regions = compute_ratio(dict_regions)
-# dict_regions_ChrX = compute_ratio(dict_regions_ChrX)
-
-
-# for coordinate in dict_regions :
-# 	for sample_name in dict_regions[coordinate]:
-# 		try :
-# 			ratio_normalise = float(dict_regions[coordinate][sample_name]["patient_normalise"]) / float(dict_regions[coordinate][sample_name]["exon_normalise"])
-# 		except ZeroDivisionError :
-# 			ratio_normalise = float(0)
-# 		dict_regions[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
-# # FOR X
-# for coordinate in dict_regions_ChrX :
-# 	for sample_name in dict_regions_ChrX[coordinate]:
-# 		try :
-# 			ratio_normalise = float(dict_regions_ChrX[coordinate][sample_name]["patient_normalise"]) / float(dict_regions_ChrX[coordinate][sample_name]["exon_normalise"])
-# 		except ZeroDivisionError :
-# 			ratio_normalise = float(0)
-# 		dict_regions_ChrX[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
-
-#pp.pprint(dict_patients)
-#pp.pprint(dict_regions)
-#dict_regions_sorted = sorted(dict_regions, key=lambda row:(row[0],int(row[1])), reverse=False)
-#dict_regions_sorted = sorted(dict_regions, key=itemgetter(0,1)
 
 def write_csv_file(file_in, file_out, dict_r, dict_m):
 	with open(file_in, 'w') as csv_file:
@@ -345,13 +244,15 @@ def write_csv_file(file_in, file_out, dict_r, dict_m):
 		header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
 		for coordinate in dict_r :
 			for sample_name in dict_r[coordinate]:
-				header += str(sample_name) + "_brut" + "\t"
+				header += str(sample_name) + "_rawDoc" + "\t"
 			for sample_name in dict_r[coordinate]:
 			 	header += str(sample_name) + "_moy_exon" + "\t"
 			for sample_name in dict_r[coordinate]:
 			 	header += str(sample_name) + "_patient_normalise" + "\t"
 			for sample_name in dict_r[coordinate]:
 			 	header += str(sample_name) + "_exon_normalise" + "\t"
+			for sample_name in dict_r[coordinate]:
+			 	header += str(sample_name) + "_stdev" + "\t"
 			for sample_name in dict_r[coordinate]:
 			 	header += str(sample_name) + "_ratio" + "\t"
 			break
@@ -365,7 +266,7 @@ def write_csv_file(file_in, file_out, dict_r, dict_m):
 				str((dict_m[coordinate]["exon_mean_doc"])) + "\t"
 				)
 			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(dict_r[coordinate][sample_name]["brut"]) + "\t")
+				csv_file.write(str(dict_r[coordinate][sample_name]["rawDoc"]) + "\t")
 			for sample_name in dict_r[coordinate] :
 				csv_file.write(str(round(dict_r[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
 			for sample_name in dict_r[coordinate] :
@@ -373,33 +274,35 @@ def write_csv_file(file_in, file_out, dict_r, dict_m):
 			for sample_name in dict_r[coordinate] :
 				csv_file.write(str(round(dict_r[coordinate][sample_name]["exon_normalise"],2)) + "\t")
 			for sample_name in dict_r[coordinate] :
+				csv_file.write(str(round(dict_r[coordinate][sample_name]["stdev"],3)) + "\t")
+			for sample_name in dict_r[coordinate] :
 				csv_file.write(str(round(dict_r[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
 			csv_file.write("\n")
 	os.system("sort -k1.4n -k2,2n -k3,3n " + file_in + " > " + file_out)
 
-write_csv_file('cnv_analysis.txt', 'cnv_analysis_sorted.txt', dict_regions, dict_mean)
-if counter_ChrX > 0:
-	write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', dict_regions_ChrX, dict_mean)
-if counter_ChrY > 0:
-	write_csv_file('cnv_analysis_ChrY.txt', 'cnv_analysis_ChrY_sorted.txt', dict_regions_ChrY, dict_mean)
+write_csv_file('cnv_analysis.txt', 'cnv_analysis_sorted.txt', per_region_metrics, dict_mean)
+if region_number_ChrX > 0:
+	write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', per_region_metrics_ChrX, dict_mean)
+if region_number_ChrY > 0:
+	write_csv_file('cnv_analysis_ChrY.txt', 'cnv_analysis_ChrY_sorted.txt', per_region_metrics_ChrY, dict_mean)
 
 # with open('cnv_analysis.txt', 'w') as csv_file:
 # 	writer = csv.writer(csv_file)
 # 	header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
-# 	for coordinate in dict_regions :
-# 		for sample_name in dict_regions[coordinate]:
-# 			header += str(sample_name) + "_brut" + "\t"
-# 		for sample_name in dict_regions[coordinate]:
+# 	for coordinate in per_region_metrics :
+# 		for sample_name in per_region_metrics[coordinate]:
+# 			header += str(sample_name) + "_rawDoc" + "\t"
+# 		for sample_name in per_region_metrics[coordinate]:
 # 			header += str(sample_name) + "_moy_exon" + "\t"
-# 		for sample_name in dict_regions[coordinate]:
+# 		for sample_name in per_region_metrics[coordinate]:
 # 			header += str(sample_name) + "_patient_normalise" + "\t"
-# 		for sample_name in dict_regions[coordinate]:
+# 		for sample_name in per_region_metrics[coordinate]:
 # 			header += str(sample_name) + "_exon_normalise" + "\t"
-# 		for sample_name in dict_regions[coordinate]:
+# 		for sample_name in per_region_metrics[coordinate]:
 # 			header += str(sample_name) + "_ratio" + "\t"
 # 		break
 # 	csv_file.write(header + "\n")
-# 	for coordinate in dict_regions :
+# 	for coordinate in per_region_metrics :
 # 		csv_file.write(
 # 			str(coordinate[0]) + "\t" +
 # 			str(coordinate[1]) + "\t" +
@@ -407,35 +310,35 @@ if counter_ChrY > 0:
 # 			str(coordinate[3]) + "\t" +
 # 			str(round(dict_mean[coordinate]["exon_mean_doc"], 2)) + "\t"
 # 			)
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(dict_regions[coordinate][sample_name]["brut"]) + "\t")
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
+# 		for sample_name in per_region_metrics[coordinate] :
+# 			csv_file.write(str(per_region_metrics[coordinate][sample_name]["rawDoc"]) + "\t")
+# 		for sample_name in per_region_metrics[coordinate] :
+# 			csv_file.write(str(round(per_region_metrics[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
+# 		for sample_name in per_region_metrics[coordinate] :
+# 			csv_file.write(str(round(per_region_metrics[coordinate][sample_name]["patient_normalise"],2)) + "\t")
+# 		for sample_name in per_region_metrics[coordinate] :
+# 			csv_file.write(str(round(per_region_metrics[coordinate][sample_name]["exon_normalise"],2)) + "\t")
+# 		for sample_name in per_region_metrics[coordinate] :
+# 			csv_file.write(str(round(per_region_metrics[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
 # 		csv_file.write("\n")
 
 # with open('cnv_analysis_ChrX.txt', 'w') as csv_file:
 # 	writer = csv.writer(csv_file)
 # 	header = "Chr\tStart\tend\tRegionID\tMean DoC\t"
-# 	for coordinate in dict_regions_ChrX :
-# 		for sample_name in dict_regions_ChrX[coordinate]:
-# 			header += str(sample_name) + "_brut" + "\t"
-# 		for sample_name in dict_regions_ChrX[coordinate]:
+# 	for coordinate in per_region_metrics_ChrX :
+# 		for sample_name in per_region_metrics_ChrX[coordinate]:
+# 			header += str(sample_name) + "_rawDoc" + "\t"
+# 		for sample_name in per_region_metrics_ChrX[coordinate]:
 # 			header += str(sample_name) + "_moy_exon" + "\t"
-# 		for sample_name in dict_regions_ChrX[coordinate]:
+# 		for sample_name in per_region_metrics_ChrX[coordinate]:
 # 			header += str(sample_name) + "_patient_normalise" + "\t"
-# 		for sample_name in dict_regions_ChrX[coordinate]:
+# 		for sample_name in per_region_metrics_ChrX[coordinate]:
 # 			header += str(sample_name) + "_exon_normalise" + "\t"
-# 		for sample_name in dict_regions_ChrX[coordinate]:
+# 		for sample_name in per_region_metrics_ChrX[coordinate]:
 # 			header += str(sample_name) + "_ratio" + "\t"
 # 		break
 # 	csv_file.write(header + "\n")
-# 	for coordinate in dict_regions_ChrX :
+# 	for coordinate in per_region_metrics_ChrX :
 # 		csv_file.write(
 # 			str(coordinate[0]) + "\t" +
 # 			str(coordinate[1]) + "\t" +
@@ -443,16 +346,16 @@ if counter_ChrY > 0:
 # 			str(coordinate[3]) + "\t" +
 # 			str(round(dict_mean[coordinate]["exon_mean_doc"], 2)) + "\t"
 # 			)
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(dict_regions_ChrX[coordinate][sample_name]["brut"]) + "\t")
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
+# 		for sample_name in per_region_metrics_ChrX[coordinate] :
+# 			csv_file.write(str(per_region_metrics_ChrX[coordinate][sample_name]["rawDoc"]) + "\t")
+# 		for sample_name in per_region_metrics_ChrX[coordinate] :
+# 			csv_file.write(str(round(per_region_metrics_ChrX[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
+# 		for sample_name in per_region_metrics_ChrX[coordinate] :
+# 			csv_file.write(str(round(per_region_metrics_ChrX[coordinate][sample_name]["patient_normalise"],2)) + "\t")
+# 		for sample_name in per_region_metrics_ChrX[coordinate] :
+# 			csv_file.write(str(round(per_region_metrics_ChrX[coordinate][sample_name]["exon_normalise"],2)) + "\t")
+# 		for sample_name in per_region_metrics_ChrX[coordinate] :
+# 			csv_file.write(str(round(per_region_metrics_ChrX[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
 # 		csv_file.write("\n")
 
 # Sorting files, works on Mac only, if you are poor (like Charles) with other OS, go fuck yourself
@@ -496,9 +399,9 @@ format2 = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
 # summary.set_row(0, 20, style5)
 # summary.set_column('A:E', 15, style5)
 # summary.set_column('D:D', 25)
-last_col = number_of_file*5 + 4
+last_col = number_of_file*6 + 4
 #sample number x number of data blocks + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
-last_col_2_hide = number_of_file*4 + 4
+last_col_2_hide = number_of_file*5 + 4
 #sample number x number of data blocks to hide + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
 
 def format_sheet(sheet, last_col):
@@ -590,7 +493,7 @@ def write_small_worksheets(selected, start, first_row, small_worksheet, col_list
 	small_worksheet.write(9, last_col+2, "Sample ID", style5)
 	small_worksheet.write(9, last_col+3, "Predicted Gender", style5)
 	small_worksheet.write(9, last_col+4, "X ratio", style5)
-	if counter_ChrX > 0 or counter_ChrY > 0:
+	if region_number_ChrX > 0 or region_number_ChrY > 0:
 		m = 10
 		for sample_name in dict_gender:
 			style = style8
@@ -757,9 +660,9 @@ def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, thr
 #worksheet for ChrX
 start3 = 0
 start4 = 0
-if counter_ChrX > 0:
+if region_number_ChrX > 0:
 	(start3, start4) = writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
-if counter_ChrY > 0:
+if region_number_ChrY > 0:
 	if start3 > 0 and start4 > 0:
 		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start3, start4)
 	else:
