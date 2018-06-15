@@ -245,12 +245,12 @@ if region_number_ChrY > 0:
 
 #We build a small list of genes of interest
 ###########
-if (Panel != False):
+panel_list = []
+if Panel:
 	panel = open(Panel, 'r')
 	# panelreader = csv.DictReader(panel, delimiter='\t')
-	liste_panel = []
 	for gene in panel :
-		liste_panel.append(gene.rstrip())
+		panel_list.append(gene.rstrip())
 ###########
 
 
@@ -335,7 +335,7 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 
 
 
-def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, reduced_regions):
+def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, reduced_regions, panel_regions, Panel, panel_list, psmX):
 	#sheet creation
 	worksheet = workbook.add_worksheet(str(name))
 	format_sheet(worksheet, last_col)
@@ -364,9 +364,23 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 		else:
 			for row_header in region:
 				worksheet.write(i, j, row_header)
+				if j == 4 and Panel:
+					for gene in panel_list:
+						if re.compile(r'.*' + gene + '.*').search(row_header) :
+							panel_regions[region] = prm[region]
 				j+=1
+			m=10
 			for sample in prm[region]:
 				j+=1
+				if i == 1 and psmX[sample]:
+					style = style8
+					if psmX[sample]["gender"] == 'female':
+						style = style7
+					worksheet.write(m, last_col+2, sample, style)
+					worksheet.write(m, last_col+3, psmX[sample]["gender"], style)
+					worksheet.write(m, last_col+4, round(psmX[sample]["xratio"], 2), style)
+					m+=1
+					
 				worksheet.write(i, j, prm[region][sample]["rawDoc"])
 				worksheet.write(i, j+number_of_file, prm[region][sample]["regionMeanOtherSamples"])
 				worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
@@ -397,25 +411,30 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 	worksheet.protect()
 
 	if quality == "global":
-		return reduced_regions
+		return reduced_regions, panel_regions
 
 print("\nBuilding Excel File:")
 print("Autosomes worksheet...")
 summary_regions = {}
-summary_regions = print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_region_metrics, 'global', summary_regions)
+panel_regions = {}
+
+(summary_regions, panel_regions) = print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_region_metrics, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
 
 if region_number_ChrX > 0:
 	print("ChrX worksheet...")
-	summary_regions = print_worksheet('Chromosome X', last_col, last_col_2_hide, workbook, per_region_metrics_ChrX, 'global', summary_regions)
+	(summary_regions, panel_regions) = print_worksheet('Chromosome X', last_col, last_col_2_hide, workbook, per_region_metrics_ChrX, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
 if region_number_ChrY > 0:
 	print("ChrY worksheet...")
-	summary_regions = print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_region_metrics_ChrY, 'global', summary_regions)
+	(summary_regions, panel_regions) = print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_region_metrics_ChrY, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
 
 #pp.pprint(summary_regions)
 
 print("Summary worksheet...")
-print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'summary', '')
-
+print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'summary', '', '', '', '', per_sample_metrics_ChrX)
+if Panel:
+	print("Panel worksheet...")
+	print_worksheet('Panel', last_col, last_col_2_hide, workbook, panel_regions, 'panel', '', '', '', '', per_sample_metrics_ChrX)
+#pp.pprint(per_sample_metrics_ChrX)
 
 workbook.close()
 
