@@ -339,6 +339,8 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 	#sheet creation
 	worksheet = workbook.add_worksheet(str(name))
 	format_sheet(worksheet, last_col)
+	if quality == "summary":
+		worksheet.activate()
 	#i=first row
 	i=0
 	#dict iterations
@@ -412,7 +414,7 @@ if region_number_ChrY > 0:
 #pp.pprint(summary_regions)
 
 print("Summary worksheet...")
-print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'reduced', '')
+print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'summary', '')
 
 
 workbook.close()
