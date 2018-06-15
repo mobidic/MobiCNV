@@ -243,134 +243,6 @@ if region_number_ChrY > 0:
 #sys.exit()
 
 
-
-
-#def write_csv_file(file_in, file_out, dict_r, dict_m):
-#	with open(file_in, 'w') as csv_file:
-#		#csv.writer(csv_file)
-#		header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
-#		for coordinate in dict_r :
-#			for sample_name in dict_r[coordinate]:
-#				header += str(sample_name) + "_rawDoc" + "\t"
-#			for sample_name in dict_r[coordinate]:
-#			 	header += str(sample_name) + "_moy_exon" + "\t"
-#			for sample_name in dict_r[coordinate]:
-#			 	header += str(sample_name) + "_patient_normalise" + "\t"
-#			for sample_name in dict_r[coordinate]:
-#			 	header += str(sample_name) + "_exon_normalise" + "\t"
-#			for sample_name in dict_r[coordinate]:
-#			 	header += str(sample_name) + "_stdev" + "\t"
-#			for sample_name in dict_r[coordinate]:
-#			 	header += str(sample_name) + "_ratio" + "\t"
-#			break
-#		csv_file.write(header + "\n")
-#		for coordinate in dict_r :
-#			csv_file.write(
-#				str(coordinate[0]) + "\t" +
-#				str(coordinate[1]) + "\t" +
-#				str(coordinate[2]) + "\t" +
-#				str(coordinate[3]) + "\t" +
-#				str((dict_m[coordinate]["exonMeanDoc"])) + "\t"
-#				)
-#			for sample_name in dict_r[coordinate] :
-#				csv_file.write(str(dict_r[coordinate][sample_name]["rawDoc"]) + "\t")
-#			for sample_name in dict_r[coordinate] :
-#				csv_file.write(str(round(dict_r[coordinate][sample_name]["exonMeanOtherSamples"], 2)) + "\t")
-#			for sample_name in dict_r[coordinate] :
-#				csv_file.write(str(round(dict_r[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-#			for sample_name in dict_r[coordinate] :
-#				csv_file.write(str(round(dict_r[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-#			for sample_name in dict_r[coordinate] :
-#				csv_file.write(str(round(dict_r[coordinate][sample_name]["stdev"],3)) + "\t")
-#			for sample_name in dict_r[coordinate] :
-#				csv_file.write(str(round(dict_r[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
-#			csv_file.write("\n")
-#	os.system("sort -k1.4n -k2,2n -k3,3n " + file_in + " > " + file_out)
-#
-#write_csv_file('cnv_analysis.txt', 'cnv_analysis_sorted.txt', per_region_metrics, dict_mean)
-#if region_number_ChrX > 0:
-#	write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', per_region_metrics_ChrX, dict_mean)
-#if region_number_ChrY > 0:
-#	write_csv_file('cnv_analysis_ChrY.txt', 'cnv_analysis_ChrY_sorted.txt', per_region_metrics_ChrY, dict_mean)
-
-# with open('cnv_analysis.txt', 'w') as csv_file:
-# 	writer = csv.writer(csv_file)
-# 	header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
-# 	for coordinate in per_region_metrics :
-# 		for sample_name in per_region_metrics[coordinate]:
-# 			header += str(sample_name) + "_rawDoc" + "\t"
-# 		for sample_name in per_region_metrics[coordinate]:
-# 			header += str(sample_name) + "_moy_exon" + "\t"
-# 		for sample_name in per_region_metrics[coordinate]:
-# 			header += str(sample_name) + "_patient_normalise" + "\t"
-# 		for sample_name in per_region_metrics[coordinate]:
-# 			header += str(sample_name) + "_exon_normalise" + "\t"
-# 		for sample_name in per_region_metrics[coordinate]:
-# 			header += str(sample_name) + "_ratio" + "\t"
-# 		break
-# 	csv_file.write(header + "\n")
-# 	for coordinate in per_region_metrics :
-# 		csv_file.write(
-# 			str(coordinate[0]) + "\t" +
-# 			str(coordinate[1]) + "\t" +
-# 			str(coordinate[2]) + "\t" +
-# 			str(coordinate[3]) + "\t" +
-# 			str(round(dict_mean[coordinate]["exonMeanDoc"], 2)) + "\t"
-# 			)
-# 		for sample_name in per_region_metrics[coordinate] :
-# 			csv_file.write(str(per_region_metrics[coordinate][sample_name]["rawDoc"]) + "\t")
-# 		for sample_name in per_region_metrics[coordinate] :
-# 			csv_file.write(str(round(per_region_metrics[coordinate][sample_name]["exonMeanOtherSamples"], 2)) + "\t")
-# 		for sample_name in per_region_metrics[coordinate] :
-# 			csv_file.write(str(round(per_region_metrics[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-# 		for sample_name in per_region_metrics[coordinate] :
-# 			csv_file.write(str(round(per_region_metrics[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-# 		for sample_name in per_region_metrics[coordinate] :
-# 			csv_file.write(str(round(per_region_metrics[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
-# 		csv_file.write("\n")
-
-# with open('cnv_analysis_ChrX.txt', 'w') as csv_file:
-# 	writer = csv.writer(csv_file)
-# 	header = "Chr\tStart\tend\tRegionID\tMean DoC\t"
-# 	for coordinate in per_region_metrics_ChrX :
-# 		for sample_name in per_region_metrics_ChrX[coordinate]:
-# 			header += str(sample_name) + "_rawDoc" + "\t"
-# 		for sample_name in per_region_metrics_ChrX[coordinate]:
-# 			header += str(sample_name) + "_moy_exon" + "\t"
-# 		for sample_name in per_region_metrics_ChrX[coordinate]:
-# 			header += str(sample_name) + "_patient_normalise" + "\t"
-# 		for sample_name in per_region_metrics_ChrX[coordinate]:
-# 			header += str(sample_name) + "_exon_normalise" + "\t"
-# 		for sample_name in per_region_metrics_ChrX[coordinate]:
-# 			header += str(sample_name) + "_ratio" + "\t"
-# 		break
-# 	csv_file.write(header + "\n")
-# 	for coordinate in per_region_metrics_ChrX :
-# 		csv_file.write(
-# 			str(coordinate[0]) + "\t" +
-# 			str(coordinate[1]) + "\t" +
-# 			str(coordinate[2]) + "\t" +
-# 			str(coordinate[3]) + "\t" +
-# 			str(round(dict_mean[coordinate]["exonMeanDoc"], 2)) + "\t"
-# 			)
-# 		for sample_name in per_region_metrics_ChrX[coordinate] :
-# 			csv_file.write(str(per_region_metrics_ChrX[coordinate][sample_name]["rawDoc"]) + "\t")
-# 		for sample_name in per_region_metrics_ChrX[coordinate] :
-# 			csv_file.write(str(round(per_region_metrics_ChrX[coordinate][sample_name]["exonMeanOtherSamples"], 2)) + "\t")
-# 		for sample_name in per_region_metrics_ChrX[coordinate] :
-# 			csv_file.write(str(round(per_region_metrics_ChrX[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-# 		for sample_name in per_region_metrics_ChrX[coordinate] :
-# 			csv_file.write(str(round(per_region_metrics_ChrX[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-# 		for sample_name in per_region_metrics_ChrX[coordinate] :
-# 			csv_file.write(str(round(per_region_metrics_ChrX[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
-# 		csv_file.write("\n")
-
-# Sorting files, works on Mac only, if you are poor (like Charles) with other OS, go fuck yourself
-#os.system("sort -k1.4n -k2,2n -k3,3n cnv_analysis.txt > cnv_analysis_sorted.txt")
-#os.system("sort -k1.4n -k2,2n -k3,3n cnv_analysis_ChrX.txt > cnv_analysis_ChrX_sorted.txt")
-#
-
-
 #We build a small list of genes of interest
 ###########
 if (Panel != False):
@@ -500,8 +372,9 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 				worksheet.write(i, j+(4*number_of_file), prm[region][sample]["ratioStdev"])
 				#define cell style - default style5: just bold
 				cell_style = style5
-				if quality == "global":
-					reduced_regions[region] = {sample: prm[region][sample]}
+				if quality == "global" and prm[region][sample]["MobiAdvice"] != 'Normal':
+					if region not in reduced_regions:
+						reduced_regions[region] = prm[region]
 
 				if prm[region][sample]["MobiAdvice"] == "HomDel":
 					cell_style = style1
@@ -535,6 +408,8 @@ if region_number_ChrX > 0:
 if region_number_ChrY > 0:
 	print("ChrY worksheet...")
 	summary_regions = print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_region_metrics_ChrY, 'global', summary_regions)
+
+#pp.pprint(summary_regions)
 
 print("Summary worksheet...")
 print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'reduced', '')
