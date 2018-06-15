@@ -446,220 +446,220 @@ sys.exit()
 
 
 
-
-def write_small_worksheets(selected, start, first_row, small_worksheet, col_list, last_col, regex_r, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz):
-	#called inside writing_total to wirte summary and panel sheets
-	i = 0
-	uniq_selected = list(set(selected))
-	for column in col_list:
-		j = first_row
-		if(start > 0):
-			j = start
-		for item in range(len(column)):
-			if (item in uniq_selected):
-				if regex_r.search(column[0]):
-					if(item > 0):
-						if(float(column[item]) <= threshold_del_hmz):
-							small_worksheet.write(j, i , column[item],style1)
-						elif(float(column[item]) <= threshold_del_htz):
-							small_worksheet.write(j, i, column[item],style2)
-						elif(float(column[item]) <= threshold_dup_htz):
-							small_worksheet.write(j, i, column[item], style5)
-						elif(float(column[item]) <= threshold_dup_hmz):
-							small_worksheet.write(j, i, column[item],style3)
-						else :
-							small_worksheet.write(j, i, column[item],style4)
-					else:
-						small_worksheet.write(j, i, column[item], style5)
-				else:
-					try:
-						small_worksheet.write(j,i,int(column[item]))
-					except ValueError:
-						small_worksheet.write(j,i,column[item])
-				j+=1
-		i+=1
-	small_worksheet.write(9, last_col+2, "Sample ID", style5)
-	small_worksheet.write(9, last_col+3, "Predicted Gender", style5)
-	small_worksheet.write(9, last_col+4, "X ratio", style5)
-	if region_number_ChrX > 0 or region_number_ChrY > 0:
-		m = 10
-		for sample_name in dict_gender:
-			style = style8
-			if dict_gender[sample_name]["gender"] == 'female':
-				style = style7
-			small_worksheet.write(m, last_col+2, sample_name, style)
-			small_worksheet.write(m, last_col+3, dict_gender[sample_name]["gender"], style)
-			small_worksheet.write(m, last_col+4, round(dict_gender[sample_name]["xratio"], 2), style)
-			m += 1
-	return (uniq_selected, j)
-
-
-
-def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, last_col_2_hide, last_col, start1=0, start2=0):
-	# TODO: change it to parameter and save worksheet
-	# if panel:
-
-	worksheet = workbook.add_worksheet(str(worksheet))
-	format_sheet(worksheet, last_col)
-	# worksheet.freeze_panes(1, 5)
-	# worksheet.set_row(0, 20, style5)
-	# worksheet.set_column('A:E', 15, style5)
-	# worksheet.set_column('D:D', 25)
-	#structure data from txt
-	f = open(str(txt_file), 'r+')
-	row_list = []
-	for row in f:
-		row_list.append(row.split('\t'))
-	# pp.pprint(row_list)
-
-	column_list = zip(*row_list)
-	column_list2 = zip(*row_list)
-	column_list3 = zip(*row_list)
-	i = 0
-	l = 0
-	interesting = []
-	gene4interest = []
-	regex_ratio = re.compile(r'(.*)_ratio$')
-	regex_noCNV = re.compile(r'no CNV')
-	regex_region = re.compile(r'RegionID')
-	for column in column_list:
-		for item in range(len(column)):
-			if regex_region.search(column[0]):
-				if (Panel != False):
-					for gene in liste_panel:
-						if re.compile(r'.*' + gene + '.*').search(column[item]) :
-							# print (column[item])
-							gene4interest.append(item)
-				else:
-					gene4interest.append(item)
-			if regex_ratio.search(column[0]):
-				if (item > 0) :
-					if(float(column[item]) <= threshold_del_hmz):
-						worksheet.write(item, i , column[item],style1)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					elif(float(column[item]) <= threshold_del_htz):
-						worksheet.write(item, i, column[item],style2)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					elif(float(column[item]) <= threshold_dup_htz):
-						worksheet.write(item, i, column[item], style5)
-					elif(float(column[item]) <= threshold_dup_hmz):
-						worksheet.write(item, i, column[item],style3)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					else :
-						worksheet.write(item, i, column[item],style4)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-				else:
-					worksheet.write(item, i, column[item], style5)
-			else:
-				try:
-					worksheet.write(item,i,int(column[item]))
-				except ValueError:
-					worksheet.write(item,i,column[item])
-			if (item == 0):
-				summary.write(item,i,column[item], style5)
-				# if panel:
-				if (Panel != False):
-					worksheet2.write(item,i,column[item], style5)
-		i+=1
-	#i = 0
-	(uniq_interesting, j) = write_small_worksheets(interesting, start1, 0, summary, column_list2, last_col, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
-	if (Panel != False):
-		(uniq_interesting_panel, l) = write_small_worksheets(gene4interest, start2, 1, worksheet2, column_list3, last_col,  regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
-		worksheet2.set_column(5,last_col_2_hide, None, None, {'level': 1, 'hidden': True})
-		add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
-	# uniq_interesting = list(set(interesting))
-	# for column in column_list2:
-	# 	j = 0
-	# 	if(start1 > 0):
-	# 		j = start1
-	# 	for item in range(len(column)):
-	# 		if (item in uniq_interesting):
-	# 			if regex_ratio.search(column[0]):
-	# 				if(item > 0):
-	# 					if(float(column[item]) <= threshold_del_hmz):
-	# 						summary.write(j, i , column[item],style1)
-	# 					elif(float(column[item]) <= threshold_del_htz):
-	# 						summary.write(j, i, column[item],style2)
-	# 					elif(float(column[item]) <= threshold_dup_htz):
-	# 						summary.write(j, i, column[item], style5)
-	# 					elif(float(column[item]) <= threshold_dup_hmz):
-	# 						summary.write(j, i, column[item],style3)
-	# 					else :
-	# 						summary.write(j, i, column[item],style4)
-	# 				else:
-	# 					summary.write(j, i, column[item], style5)
-	# 			else:
-	# 				summary.write(j,i,column[item])
-	# 			j+=1
-	# 	i+=1
-	
-
-	# i = 0
-	# # part to dev
-	# if (Panel != False):
-	# 	#l=0
-	# 	uniq_interesting_panel = list(set(gene4interest))
-	# 	for column in column_list3:
-	# 		l = 1
-	# 		if (start2 > 0 ):
-	# 			l = start2
-	# 		for item in range(len(column)):
-	# 			if (item in uniq_interesting_panel):
-	# 				if regex_ratio.search(column[0]):
-	# 					if(item > 0):
-	# 						if(float(column[item]) <= threshold_del_hmz):
-	# 							worksheet2.write(l, i , column[item],style1)
-	# 						elif(float(column[item]) <= threshold_del_htz):
-	# 							worksheet2.write(l, i, column[item],style2)
-	# 						elif(float(column[item]) <= threshold_dup_htz):
-	# 							worksheet2.write(l, i, column[item], style5)
-	# 						elif(float(column[item]) <= threshold_dup_hmz):
-	# 							worksheet2.write(l, i, column[item],style3)
-	# 						else :
-	# 							worksheet2.write(l, i, column[item],style4)
-	# 					else:
-	# 						worksheet2.write(l, i, column[item], style5)
-	# 				else:
-	# 					worksheet2.write(l,i,column[item])
-	# 				l+=1
-	# 		i+=1
-	# 	i = 0
-	# 	worksheet2.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
-	# 	add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
-	worksheet.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
-	worksheet.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
-	add_conditionnal_format(worksheet, 50, 2, len(row_list))
-	worksheet.protect()
-	summary.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
-	add_conditionnal_format(summary, 50, start1, start1 + len(uniq_interesting))
-	return (j,l)
-
-#worksheet for autosomes
-(start1, start2) = writing_total('Autosomes','cnv_analysis_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col)
-# print (start1, start2)
-#worksheet for ChrX
-start3 = 0
-start4 = 0
-if region_number_ChrX > 0:
-	(start3, start4) = writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
-if region_number_ChrY > 0:
-	if start3 > 0 and start4 > 0:
-		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start3, start4)
-	else:
-		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
-
-if (Panel != False):
-	worksheet2.protect()
-summary.protect()
-workbook.close()
-#remove temporary files
-os.system("rm cnv_analysis.txt cnv_analysis_sorted.txt cnv_analysis_ChrX.txt cnv_analysis_ChrX_sorted.txt cnv_analysis_ChrY.txt cnv_analysis_ChrY_sorted.txt")
-print("\nDone!!!\n")
+#
+#def write_small_worksheets(selected, start, first_row, small_worksheet, col_list, last_col, regex_r, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz):
+#	#called inside writing_total to wirte summary and panel sheets
+#	i = 0
+#	uniq_selected = list(set(selected))
+#	for column in col_list:
+#		j = first_row
+#		if(start > 0):
+#			j = start
+#		for item in range(len(column)):
+#			if (item in uniq_selected):
+#				if regex_r.search(column[0]):
+#					if(item > 0):
+#						if(float(column[item]) <= threshold_del_hmz):
+#							small_worksheet.write(j, i , column[item],style1)
+#						elif(float(column[item]) <= threshold_del_htz):
+#							small_worksheet.write(j, i, column[item],style2)
+#						elif(float(column[item]) <= threshold_dup_htz):
+#							small_worksheet.write(j, i, column[item], style5)
+#						elif(float(column[item]) <= threshold_dup_hmz):
+#							small_worksheet.write(j, i, column[item],style3)
+#						else :
+#							small_worksheet.write(j, i, column[item],style4)
+#					else:
+#						small_worksheet.write(j, i, column[item], style5)
+#				else:
+#					try:
+#						small_worksheet.write(j,i,int(column[item]))
+#					except ValueError:
+#						small_worksheet.write(j,i,column[item])
+#				j+=1
+#		i+=1
+#	small_worksheet.write(9, last_col+2, "Sample ID", style5)
+#	small_worksheet.write(9, last_col+3, "Predicted Gender", style5)
+#	small_worksheet.write(9, last_col+4, "X ratio", style5)
+#	if region_number_ChrX > 0 or region_number_ChrY > 0:
+#		m = 10
+#		for sample_name in dict_gender:
+#			style = style8
+#			if dict_gender[sample_name]["gender"] == 'female':
+#				style = style7
+#			small_worksheet.write(m, last_col+2, sample_name, style)
+#			small_worksheet.write(m, last_col+3, dict_gender[sample_name]["gender"], style)
+#			small_worksheet.write(m, last_col+4, round(dict_gender[sample_name]["xratio"], 2), style)
+#			m += 1
+#	return (uniq_selected, j)
+#
+#
+#
+#def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, last_col_2_hide, last_col, start1=0, start2=0):
+#	# TODO: change it to parameter and save worksheet
+#	# if panel:
+#
+#	worksheet = workbook.add_worksheet(str(worksheet))
+#	format_sheet(worksheet, last_col)
+#	# worksheet.freeze_panes(1, 5)
+#	# worksheet.set_row(0, 20, style5)
+#	# worksheet.set_column('A:E', 15, style5)
+#	# worksheet.set_column('D:D', 25)
+#	#structure data from txt
+#	f = open(str(txt_file), 'r+')
+#	row_list = []
+#	for row in f:
+#		row_list.append(row.split('\t'))
+#	# pp.pprint(row_list)
+#
+#	column_list = zip(*row_list)
+#	column_list2 = zip(*row_list)
+#	column_list3 = zip(*row_list)
+#	i = 0
+#	l = 0
+#	interesting = []
+#	gene4interest = []
+#	regex_ratio = re.compile(r'(.*)_ratio$')
+#	regex_noCNV = re.compile(r'no CNV')
+#	regex_region = re.compile(r'RegionID')
+#	for column in column_list:
+#		for item in range(len(column)):
+#			if regex_region.search(column[0]):
+#				if (Panel != False):
+#					for gene in liste_panel:
+#						if re.compile(r'.*' + gene + '.*').search(column[item]) :
+#							# print (column[item])
+#							gene4interest.append(item)
+#				else:
+#					gene4interest.append(item)
+#			if regex_ratio.search(column[0]):
+#				if (item > 0) :
+#					if(float(column[item]) <= threshold_del_hmz):
+#						worksheet.write(item, i , column[item],style1)
+#						for k in range(item-1,item+2):
+#							if (k > 0):
+#								interesting.append(k)
+#					elif(float(column[item]) <= threshold_del_htz):
+#						worksheet.write(item, i, column[item],style2)
+#						for k in range(item-1,item+2):
+#							if (k > 0):
+#								interesting.append(k)
+#					elif(float(column[item]) <= threshold_dup_htz):
+#						worksheet.write(item, i, column[item], style5)
+#					elif(float(column[item]) <= threshold_dup_hmz):
+#						worksheet.write(item, i, column[item],style3)
+#						for k in range(item-1,item+2):
+#							if (k > 0):
+#								interesting.append(k)
+#					else :
+#						worksheet.write(item, i, column[item],style4)
+#						for k in range(item-1,item+2):
+#							if (k > 0):
+#								interesting.append(k)
+#				else:
+#					worksheet.write(item, i, column[item], style5)
+#			else:
+#				try:
+#					worksheet.write(item,i,int(column[item]))
+#				except ValueError:
+#					worksheet.write(item,i,column[item])
+#			if (item == 0):
+#				summary.write(item,i,column[item], style5)
+#				# if panel:
+#				if (Panel != False):
+#					worksheet2.write(item,i,column[item], style5)
+#		i+=1
+#	#i = 0
+#	(uniq_interesting, j) = write_small_worksheets(interesting, start1, 0, summary, column_list2, last_col, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
+#	if (Panel != False):
+#		(uniq_interesting_panel, l) = write_small_worksheets(gene4interest, start2, 1, worksheet2, column_list3, last_col,  regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
+#		worksheet2.set_column(5,last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+#		add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
+#	# uniq_interesting = list(set(interesting))
+#	# for column in column_list2:
+#	# 	j = 0
+#	# 	if(start1 > 0):
+#	# 		j = start1
+#	# 	for item in range(len(column)):
+#	# 		if (item in uniq_interesting):
+#	# 			if regex_ratio.search(column[0]):
+#	# 				if(item > 0):
+#	# 					if(float(column[item]) <= threshold_del_hmz):
+#	# 						summary.write(j, i , column[item],style1)
+#	# 					elif(float(column[item]) <= threshold_del_htz):
+#	# 						summary.write(j, i, column[item],style2)
+#	# 					elif(float(column[item]) <= threshold_dup_htz):
+#	# 						summary.write(j, i, column[item], style5)
+#	# 					elif(float(column[item]) <= threshold_dup_hmz):
+#	# 						summary.write(j, i, column[item],style3)
+#	# 					else :
+#	# 						summary.write(j, i, column[item],style4)
+#	# 				else:
+#	# 					summary.write(j, i, column[item], style5)
+#	# 			else:
+#	# 				summary.write(j,i,column[item])
+#	# 			j+=1
+#	# 	i+=1
+#	
+#
+#	# i = 0
+#	# # part to dev
+#	# if (Panel != False):
+#	# 	#l=0
+#	# 	uniq_interesting_panel = list(set(gene4interest))
+#	# 	for column in column_list3:
+#	# 		l = 1
+#	# 		if (start2 > 0 ):
+#	# 			l = start2
+#	# 		for item in range(len(column)):
+#	# 			if (item in uniq_interesting_panel):
+#	# 				if regex_ratio.search(column[0]):
+#	# 					if(item > 0):
+#	# 						if(float(column[item]) <= threshold_del_hmz):
+#	# 							worksheet2.write(l, i , column[item],style1)
+#	# 						elif(float(column[item]) <= threshold_del_htz):
+#	# 							worksheet2.write(l, i, column[item],style2)
+#	# 						elif(float(column[item]) <= threshold_dup_htz):
+#	# 							worksheet2.write(l, i, column[item], style5)
+#	# 						elif(float(column[item]) <= threshold_dup_hmz):
+#	# 							worksheet2.write(l, i, column[item],style3)
+#	# 						else :
+#	# 							worksheet2.write(l, i, column[item],style4)
+#	# 					else:
+#	# 						worksheet2.write(l, i, column[item], style5)
+#	# 				else:
+#	# 					worksheet2.write(l,i,column[item])
+#	# 				l+=1
+#	# 		i+=1
+#	# 	i = 0
+#	# 	worksheet2.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+#	# 	add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
+#	worksheet.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+#	worksheet.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+#	add_conditionnal_format(worksheet, 50, 2, len(row_list))
+#	worksheet.protect()
+#	summary.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+#	add_conditionnal_format(summary, 50, start1, start1 + len(uniq_interesting))
+#	return (j,l)
+#
+##worksheet for autosomes
+#(start1, start2) = writing_total('Autosomes','cnv_analysis_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col)
+## print (start1, start2)
+##worksheet for ChrX
+#start3 = 0
+#start4 = 0
+#if region_number_ChrX > 0:
+#	(start3, start4) = writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
+#if region_number_ChrY > 0:
+#	if start3 > 0 and start4 > 0:
+#		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start3, start4)
+#	else:
+#		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
+#
+#if (Panel != False):
+#	worksheet2.protect()
+#summary.protect()
+#workbook.close()
+##remove temporary files
+#os.system("rm cnv_analysis.txt cnv_analysis_sorted.txt cnv_analysis_ChrX.txt cnv_analysis_ChrX_sorted.txt cnv_analysis_ChrY.txt cnv_analysis_ChrY_sorted.txt")
+#print("\nDone!!!\n")
