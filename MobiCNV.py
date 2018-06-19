@@ -42,38 +42,35 @@ if Panel == '':
 
 filelist = os.listdir(Path)
 number_of_file = 0
-sample_name = []
-counter = 0
-dict_regions = {}
-dict_patients = {}
-dict_mean = {}
-dict_gender = {}
+region_number = 0
+per_region_metrics = {}
+per_sample_metrics = {}
 total_mean = 0
-dict_regions_ChrX = {}
-dict_patients_ChrX = {}
+per_region_metrics_ChrX = {}
+per_sample_metrics_ChrX = {}
 total_mean_ChrX = 0
-counter_ChrX = 0
-dict_regions_ChrY = {}
-dict_patients_ChrY = {}
+region_number_ChrX = 0
+per_region_metrics_ChrY = {}
+per_sample_metrics_ChrY = {}
 total_mean_ChrY = 0
-counter_ChrY = 0
+region_number_ChrY = 0
 
 print("\nFiles that will be considered:\n")
 
 
-def build_dict(baseName, line, counter, dict_r, dict_p):
-	if(baseName not in dict_p):
-		dict_p[baseName] = {"sum_patient": float(line[4])}
+def build_dict(baseName, line, region_number, prm, psm, key):
+	if(baseName not in psm):
+		psm[baseName] = {"rawDocSum": float(line[4])}
 	else:
-		dict_p[baseName]["sum_patient"] += float(line[4])
-	# création dictionnaire avec les valeurs bruts
-	coordinate = (line[0],line[1],line[2], line[3])
-	if coordinate not in dict_r :
-		counter += 1
-		dict_r[coordinate] = {baseName : {"brut" : float(line[4])}}
+		psm[baseName]["rawDocSum"] += float(line[4])
+	# création dictionnaire avec les valeurs rawDocs
+	coordinate = (key,line[0],line[1],line[2],line[3])
+	if coordinate not in prm :
+		region_number += 1
+		prm[coordinate] = {baseName : {"rawDoc" : float(line[4])}}
 	else :
-		dict_r[coordinate][baseName] = {"brut" : float(line[4])}	
-	return(counter, dict_r, dict_p)
+		prm[coordinate][baseName] = {"rawDoc" : float(line[4])}	
+	return(region_number, prm, psm)
 
 #############
 for i in filelist:
@@ -81,398 +78,183 @@ for i in filelist:
 	regex = re.compile(r'^([^\.].+)[\._]coverage\.%s$'%ext)
 	matchObj = regex.search(os.path.basename(i))
 	if(matchObj):
-	#if i.endswith("coverage." + ext):  # You could also add "and i.startswith('f')
+		#for each file
 		print(i)
 		number_of_file += 1
-	#	regex = re.compile(r'^[^\.](.+)[\._]coverage\.[tc]sv$')
-	#	matchObj = regex.search(os.path.basename(i))
-	#	if(matchObj):
 		baseName = matchObj.group(1)
-		sample_name.append(baseName)
-	#	else:
-	#		sys.exit("Error [1] : file \'" + i + "\' does not respect format (sample.coverage.tsv).")
-	####
-
+		keyAuto = keyX = keyY = 1
+		#we read and each line is converted into a dictionnary
+		#2 dicts, one per sample for global metrics and one more detailed for per region metrics
+		#Each dict type (region, sample) is in fact composed of up to 3 dicts, one for autosomes, one for chrX, and one for chrY
+		#coz more simple to handle when writing in separate tabs in excel
 		with open(Path + i, 'r') as csvfile:
 			csvreader = csv.reader(csvfile, delimiter =delim)
 			for line in csvreader:
 				line = [w.replace(',', '.') for w in line]
 				expression = r'^.*#.*$' # remove header
+				#autosomes
 				if not re.match(expression, line[0]) and line[0] != "chrX" and line[0] != "chrY":
-					(counter, dict_regions, dict_patients) = build_dict(baseName, line, counter, dict_regions, dict_patients)
-					#création moyenne par patient
-					#if(baseName not in dict_patients):
-					#	dict_patients[baseName] = {"sum_patient": float(line[4])}
-					#else:
-					#	dict_patients[baseName]["sum_patient"] += float(line[4])
-					# création dictionnaire avec les valeurs bruts
-					#coordinate = (line[0],line[1],line[2], line[3])
-					#if coordinate not in dict_regions :
-					#	counter += 1
-					#	dict_regions[coordinate] = {baseName : {"brut" : float(line[4])}}
-					#else :
-					#	dict_regions[coordinate][baseName] = {"brut" : float(line[4])}
+					(region_number, per_region_metrics, per_sample_metrics) = build_dict(baseName, line, region_number, per_region_metrics, per_sample_metrics, keyAuto)
+					keyAuto+=1
+				#chrX
 				elif not re.match(expression, line[0]) and (line[0] == "chrX" or line[0] == "X"):
-						(counter_ChrX, dict_regions_ChrX, dict_patients_ChrX) = build_dict(baseName, line, counter_ChrX, dict_regions_ChrX, dict_patients_ChrX)
+					(region_number_ChrX, per_region_metrics_ChrX, per_sample_metrics_ChrX) = build_dict(baseName, line, region_number_ChrX, per_region_metrics_ChrX, per_sample_metrics_ChrX, keyX)
+					keyX+=1
+				#chrY
 				elif not re.match(expression, line[0]) and (line[0] == "chrY" or line[0] == "Y"):
-						(counter_ChrY, dict_regions_ChrY, dict_patients_ChrY) = build_dict(baseName, line, counter_ChrY, dict_regions_ChrY, dict_patients_ChrY)
-						# if(baseName not in dict_patients_ChrX):
-						# 	dict_patients_ChrX[baseName] = {"sum_patient": float(line[4])}
-						# else:
-						# 	dict_patients_ChrX[baseName]["sum_patient"] += float(line[4])
-						# # création dictionnaire avec les valeurs bruts
-						# coordinate = (line[0],line[1],line[2],line[3])
-						# if coordinate not in dict_regions_ChrX :
-						# 	counter_ChrX += 1
-						# 	dict_regions_ChrX[coordinate] = {baseName : {"brut" : float(line[4])}}
-						# else :
-						# 	dict_regions_ChrX[coordinate][baseName] = {"brut" : float(line[4])}
-# faire pareil pour ChrY
+					(region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY) = build_dict(baseName, line, region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY, keyY)
+					keyY+=1
+
 #############
 
 #############
+#pp.pprint(per_sample_metrics)
+#pp.pprint(per_region_metrics_ChrX)
+#sys.exit()
+
 
 # Itération sur le dictionnaire patient pour calculer la moyenne par  patient
-
-# def sample_mean(dico):
-# 	for sample_name in dict_patients:
-
-for sample_name in dict_patients:
-		dict_patients[sample_name]["moyenne_patient"] = dict_patients[sample_name]["sum_patient"]/ counter
-# FOR X
-if counter_ChrX > 0:
-	for sample_name in dict_patients_ChrX:
-			dict_patients_ChrX[sample_name]["moyenne_patient"] = dict_patients_ChrX[sample_name]["sum_patient"]/ counter_ChrX
-			dict_gender[sample_name] = {"xratio": float(dict_patients_ChrX[sample_name]["moyenne_patient"] / dict_patients[sample_name]["moyenne_patient"]),
-										"gender": "male"}
-			if (dict_gender[sample_name]["xratio"] > 0.65):
-				dict_gender[sample_name]["gender"] = "female"
-if counter_ChrY > 0:
-	for sample_name in dict_patients_ChrY:
-			dict_patients_ChrY[sample_name]["moyenne_patient"] = dict_patients_ChrY[sample_name]["sum_patient"]/ counter_ChrY
-			#print(sample_name + " " + str(dict_patients_ChrY[sample_name]["moyenne_patient"]) + " " + dict_gender[sample_name]["gender"])
-			if (dict_patients_ChrY[sample_name]["moyenne_patient"] > 1 and dict_gender[sample_name]["gender"] != "male"):
+for sample_name in per_sample_metrics:
+		per_sample_metrics[sample_name]["meanRawDoc"] = per_sample_metrics[sample_name]["rawDocSum"]/ region_number
+# FOR X and in addition we compute on the fly the x ratio which determinates the gender
+#then the ratio and predicted gender are added to the per_sample_metrics_chrX dict ONLY
+# FOR Y we look for Y regions in female samples and print a warning if found unconsistant
+if region_number_ChrX > 0:
+	for sample_name in per_sample_metrics_ChrX:
+			per_sample_metrics_ChrX[sample_name]["meanRawDoc"] = round(per_sample_metrics_ChrX[sample_name]["rawDocSum"]/ region_number_ChrX, 3)
+			per_sample_metrics_ChrX[sample_name]["xratio"] = round(float(per_sample_metrics_ChrX[sample_name]["meanRawDoc"] / per_sample_metrics[sample_name]["meanRawDoc"]), 3)
+			per_sample_metrics_ChrX[sample_name]["gender"] = "male"
+			if (per_sample_metrics_ChrX[sample_name]["xratio"] > 0.65):
+				per_sample_metrics_ChrX[sample_name]["gender"] = "female"
+if region_number_ChrY > 0:
+	for sample_name in per_sample_metrics_ChrY:
+			per_sample_metrics_ChrY[sample_name]["meanRawDoc"] = per_sample_metrics_ChrY[sample_name]["rawDocSum"]/ region_number_ChrY
+			if (per_sample_metrics_ChrY[sample_name]["meanRawDoc"] > 1 and per_sample_metrics_ChrX[sample_name]["gender"] != "male"):
 				print("\n\nWARNING Gender inconsistancy for " + sample_name + "reads on Y chr with X ratio > 0.65\n\n")
-				dict_gender[sample_name]["gender"] = "male/female"
+				per_sample_metrics_ChrX[sample_name]["gender"] = "male/female"
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
 
-def exon_mean(dict_r, dict_m):
-	for coordinate in dict_r :
-		for sample_name in dict_r[coordinate]:
-			total = 0
-			full_total = 0
-			sample_number = 0
-			for sample_other in dict_r[coordinate]:
+#pp.pprint(per_sample_metrics_ChrX)
+#sys.exit()
+#function to populate per_region_metrics dictionnary with mean coverage per exons
+#two metrics:
+#1- full mean including all samples per region just to be printed in final file for informative purpose
+#2- mean excluding current sample for normalisation purpose
+def exon_mean(prm):
+	for coordinate in prm :
+		for sample_name in prm[coordinate]:
+			total = full_total = sample_number = 0
+			for sample_other in prm[coordinate]:
 				if sample_other != sample_name:
-					total += dict_r[coordinate][sample_other]['brut']
+					total += prm[coordinate][sample_other]['rawDoc']
 					sample_number +=1
-				full_total += dict_r[coordinate][sample_other]['brut']
-			#moyenne_exon = total / sample_number
-			dict_m[coordinate] = {"exon_mean_doc": int(full_total / (sample_number+1))}
-			dict_r[coordinate][sample_name]["moyenne_exon"] = float(total / sample_number)
-	return(dict_r, dict_m)
+				full_total += prm[coordinate][sample_other]['rawDoc']
+			#regionMeanOtherSamples = total / sample_number
+			prm[coordinate][sample_name]["regionMeanDoc"] = int(full_total / (sample_number+1))
+			prm[coordinate][sample_name]["regionMeanOtherSamples"] = round(float(total / sample_number), 3)
+	return(prm)
 
-(dict_regions, dict_mean) = exon_mean(dict_regions, dict_mean)
-if counter_ChrX > 0:
-	(dict_regions_ChrX, dict_mean) = exon_mean(dict_regions_ChrX, dict_mean)
-if counter_ChrY > 0:
-	(dict_regions_ChrY, dict_mean) = exon_mean(dict_regions_ChrY, dict_mean)
-#pp.pprint(dict_regions)
+per_region_metrics = exon_mean(per_region_metrics)
+if region_number_ChrX > 0:
+	per_region_metrics_ChrX = exon_mean(per_region_metrics_ChrX)
+if region_number_ChrY > 0:
+	per_region_metrics_ChrY = exon_mean(per_region_metrics_ChrY)
 
-# for coordinate in dict_regions :
-# 	for sample_name in dict_regions[coordinate]:
-# 		total = 0
-# 		full_total = 0
-# 		sample_number = 0
-# 		for sample_other in dict_regions[coordinate]:
-# 			if sample_other != sample_name:
-# 				total += dict_regions[coordinate][sample_other]['brut']
-# 				sample_number +=1
-# 			full_total += dict_regions[coordinate][sample_other]['brut']
-# 		moyenne_exon = total / sample_number
-# 		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
-# 		dict_regions[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
-# 
-# # FOR X
-# for coordinate in dict_regions_ChrX :
-# 	for sample_name in dict_regions_ChrX[coordinate]:
-# 		total = 0
-# 		full_total = 0
-# 		sample_number = 0
-# 		for sample_other in dict_regions_ChrX[coordinate]:
-# 			if sample_other != sample_name:
-# 				total += dict_regions_ChrX[coordinate][sample_other]['brut']
-# 				sample_number +=1
-# 			full_total += dict_regions_ChrX[coordinate][sample_other]['brut']
-# 		moyenne_exon = total / sample_number
-# 		dict_mean[coordinate] = {"exon_mean_doc": full_total / (sample_number+1)}
-# 		dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] = float(moyenne_exon)
 
 #############
 # Itération sur le dictionnaire régions pour calculer la somme moyenne par patient
 # sauf pour les exons du patient - Somme ajoutée dans le dict patients
 
 
-def compute_ratio(dict_p, dict_r, counter):
-	for sample_name in dict_p:
-		dict_p[sample_name]["somme_moyenne_exon"] = 0
-		for coordinate in dict_r :
+def compute_ratio(psm, prm, region_number):
+	#loop to compute per region the mean coverage of all regions except the ROI
+	for sample_name in psm:
+		psm[sample_name]["regionMeanOtherSamplesSum"] = 0
+		for coordinate in prm :
 			#compute mean sum per exon
-			dict_p[sample_name]["somme_moyenne_exon"] += dict_r[coordinate][sample_name]["moyenne_exon"]
+			psm[sample_name]["regionMeanOtherSamplesSum"] += prm[coordinate][sample_name]["regionMeanOtherSamples"]
 		#mean for all samples except current sample
-		dict_p[sample_name]["total_mean_sans_le_patient"] = dict_p[sample_name]["somme_moyenne_exon"] / counter
-	for sample_name in dict_p:	
-		for coordinate in dict_r :
+		psm[sample_name]["totalMeanOtherSample"] = round(psm[sample_name]["regionMeanOtherSamplesSum"] / region_number, 3)
+	#loop to compute normalised values per region (vakue for the ROI and for all others excluding ROI)
+	for sample_name in psm:	
+		for coordinate in prm :
 			#normalisation per exon
-			dict_r[coordinate][sample_name]["exon_normalise"] = dict_r[coordinate][sample_name]["moyenne_exon"] / dict_p[sample_name]["total_mean_sans_le_patient"]
-	for coordinate in dict_r :	
-		for sample_name in dict_r[coordinate]:
-			#patient_normalise = dict_regions[coordinate][sample_name]['brut'] / dict_patients[sample_name]["moyenne_patient"]
-			#normalisation per patient: exon DoC / mean all patients
-			dict_r[coordinate][sample_name]["patient_normalise"] = float(dict_r[coordinate][sample_name]['brut'] / dict_p[sample_name]["moyenne_patient"])
-	for coordinate in dict_r :
-		for sample_name in dict_r[coordinate]:
+			prm[coordinate][sample_name]["normalisedMeanOtherSamples"] = round(prm[coordinate][sample_name]["regionMeanOtherSamples"] / psm[sample_name]["totalMeanOtherSample"], 3)
+			prm[coordinate][sample_name]["normalisedRegion"] = round(float(prm[coordinate][sample_name]['rawDoc'] / psm[sample_name]["meanRawDoc"]), 3)
+	#computes final ratio
+	for coordinate in prm :
+		for sample_name in prm[coordinate]:			
 			try :
-				ratio_normalise = float(dict_r[coordinate][sample_name]["patient_normalise"]) / float(dict_r[coordinate][sample_name]["exon_normalise"])
+				normalised_ratio = float(prm[coordinate][sample_name]["normalisedRegion"]) / float(prm[coordinate][sample_name]["normalisedMeanOtherSamples"])
 			except ZeroDivisionError :
-				ratio_normalise = float(0)
-			dict_r[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
-	return (dict_p, dict_r)
+				normalised_ratio = float(0) 
+			prm[coordinate][sample_name]["normalisedRatio"] = round(float(normalised_ratio), 3)
+	#computes stdev for final ratio
+	for coordinate in prm :
+	  	for sample_name in prm[coordinate]:
+	  		std_dev=[]
+	  		for sample_name2 in prm[coordinate]:
+	  			if(sample_name != sample_name2):
+	  				std_dev.append(prm[coordinate][sample_name2]["normalisedRatio"])
+	  		prm[coordinate][sample_name]["ratioStdev"]=round(float(np.std(std_dev)), 3)
+	#interpretation
+	#<0.3 => hom del
+	#>1.7 => hom dup
+	#betwwen 0.8 and 1.2 => normal
+	#between 0.3 and 0.8 =>supect het del then
+	#	between 1-2.5sigma and 1 => normal
+	#	<1-2.5sigma => het del
+	#between 1.2 and 1.7 =>supect het del then
+	#	between 1 and 1+2.5sigma => normal
+	#	>1+2.5sigma => het dup
+	xfactor = 2.5
+	for coordinate in prm :
+	  	for sample_name in prm[coordinate]:
+	  		ratio = prm[coordinate][sample_name]["normalisedRatio"]
+	  		if ratio < 0.3:
+	  			prm[coordinate][sample_name]["MobiAdvice"] = "HomDel"
+	  		elif ratio > 1.7:
+	  			prm[coordinate][sample_name]["MobiAdvice"] = "HomDup"
+	  		elif ratio > 0.8 and ratio < 1.2:
+	  			prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+	  		elif ratio >= 0.3 and ratio <= 0.8:
+	  			dynamic_threshold = 1 - (xfactor * prm[coordinate][sample_name]["ratioStdev"])
+	  			if ratio < dynamic_threshold:
+	  				prm[coordinate][sample_name]["MobiAdvice"] = "HetDel"
+	  			else:
+	  				prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+	  		elif ratio >= 1.2 and ratio <= 1.7:
+	  			dynamic_threshold = 1 + (xfactor * prm[coordinate][sample_name]["ratioStdev"])
+	  			if ratio > dynamic_threshold:
+	  				prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
+	  			else:
+	  				prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+	return (psm, prm)
 
-(dict_patients, dict_regions) = compute_ratio(dict_patients, dict_regions, counter)
-if counter_ChrX > 0:
-	(dict_patients_ChrX, dict_regions_ChrX) = compute_ratio(dict_patients_ChrX, dict_regions_ChrX, counter_ChrX)
-if counter_ChrY > 0:
-	(dict_patients_ChrY, dict_regions_ChrY) = compute_ratio(dict_patients_ChrY, dict_regions_ChrY, counter_ChrY)
-#pp.pprint(dict_regions)
-#pp.pprint(dict_regions_ChrX)
-# 
-# for sample_name in dict_patients:
-# 	dict_patients[sample_name]["somme_moyenne_exon"] = 0
-# 	for coordinate in dict_regions :
-# 		dict_patients[sample_name]["somme_moyenne_exon"] += dict_regions[coordinate][sample_name]["moyenne_exon"]
-# 	dict_patients[sample_name]["total_mean_sans_le_patient"] = dict_patients [sample_name]["somme_moyenne_exon"] / counter
-# #for sample_name in dict_patients:
-# #	dict_patients[sample_name]["total_mean_sans_le_patient"] = dict_patients [sample_name]["somme_moyenne_exon"] / counter
-# 
-# # FOR X
-# for sample_name in dict_patients_ChrX:
-# 	dict_patients_ChrX[sample_name]["somme_moyenne_exon"] = 0
-# 	for coordinate in dict_regions_ChrX :
-# 		dict_patients_ChrX[sample_name]["somme_moyenne_exon"] += dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"]
-# 	dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"] = dict_patients_ChrX [sample_name]["somme_moyenne_exon"] / counter_ChrX
-# 
-# #for sample_name in dict_patients_ChrX:
-# #	dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"] = dict_patients_ChrX [sample_name]["somme_moyenne_exon"] / counter_ChrX
-# 
-# #############
-# # Itération sur le dictionnaire régions pour ajouter la valeur "exon_normalise"
-# # Moyenne exon / Moyenne tota
-# #@@@@@@@@@@@@@@@@@@@
-# #@@@@@@@@@@@@@@@@@@@
-# #@@@@@@@@@@@@@@@@@@@
-# #@@@@@@@@@@@@@@@@@@@
-# for sample_name in dict_patients:
-# 	for coordinate in dict_regions :
-# 		dict_regions [coordinate][sample_name]["exon_normalise"] = dict_regions[coordinate][sample_name]["moyenne_exon"] / dict_patients[sample_name]["total_mean_sans_le_patient"]
-# 
-# # FOR X
-# 
-# for sample_name in dict_patients_ChrX:
-# 	for coordinate in dict_regions_ChrX :
-# 		dict_regions_ChrX [coordinate][sample_name]["exon_normalise"] = dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"] / dict_patients_ChrX[sample_name]["total_mean_sans_le_patient"]
-# 
-# 
-# 
-# #############
-# # Normalisation par patient : valeur couverture exon / moyenne patient
-# 
-# for coordinate in dict_regions :
-# 	for sample_name in dict_regions[coordinate]:
-# 		patient_normalise = dict_regions[coordinate][sample_name]['brut'] / dict_patients[sample_name]["moyenne_patient"]
-# 		dict_regions[coordinate][sample_name]["patient_normalise"] = float(patient_normalise)
-# 
-# # FOR X
-# 
-# for coordinate in dict_regions_ChrX :
-# 	for sample_name in dict_regions_ChrX[coordinate]:
-# 		patient_normalise = dict_regions_ChrX[coordinate][sample_name]['brut'] / dict_patients_ChrX[sample_name]["moyenne_patient"]
-# 		dict_regions_ChrX[coordinate][sample_name]["patient_normalise"] = float(patient_normalise)
+(per_sample_metrics, per_region_metrics) = compute_ratio(per_sample_metrics, per_region_metrics, region_number)
+if region_number_ChrX > 0:
+	(per_sample_metrics_ChrX, per_region_metrics_ChrX) = compute_ratio(per_sample_metrics_ChrX, per_region_metrics_ChrX, region_number_ChrX)
+if region_number_ChrY > 0:
+	(per_sample_metrics_ChrY, per_region_metrics_ChrY) = compute_ratio(per_sample_metrics_ChrY, per_region_metrics_ChrY, region_number_ChrY)
 
-#############
-
-# Calcul ratio normalise
-
-# def compute_ratio(dict_r):
-# 	for coordinate in dict_r :
-# 		for sample_name in dict_r[coordinate]:
-# 			try :
-# 				ratio_normalise = float(dict_r[coordinate][sample_name]["patient_normalise"]) / float(dict_r[coordinate][sample_name]["exon_normalise"])
-# 			except ZeroDivisionError :
-# 				ratio_normalise = float(0)
-# 			dict_r[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
-# 	return dict_r
-# 
-# dict_regions = compute_ratio(dict_regions)
-# dict_regions_ChrX = compute_ratio(dict_regions_ChrX)
+#pp.pprint(per_region_metrics)
+#pp.pprint(per_region_metrics_ChrX)
+#sys.exit()
 
 
-# for coordinate in dict_regions :
-# 	for sample_name in dict_regions[coordinate]:
-# 		try :
-# 			ratio_normalise = float(dict_regions[coordinate][sample_name]["patient_normalise"]) / float(dict_regions[coordinate][sample_name]["exon_normalise"])
-# 		except ZeroDivisionError :
-# 			ratio_normalise = float(0)
-# 		dict_regions[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
-# # FOR X
-# for coordinate in dict_regions_ChrX :
-# 	for sample_name in dict_regions_ChrX[coordinate]:
-# 		try :
-# 			ratio_normalise = float(dict_regions_ChrX[coordinate][sample_name]["patient_normalise"]) / float(dict_regions_ChrX[coordinate][sample_name]["exon_normalise"])
-# 		except ZeroDivisionError :
-# 			ratio_normalise = float(0)
-# 		dict_regions_ChrX[coordinate][sample_name]["ratio_normalise"] = float(ratio_normalise)
-
-#pp.pprint(dict_patients)
-#pp.pprint(dict_regions)
-#dict_regions_sorted = sorted(dict_regions, key=lambda row:(row[0],int(row[1])), reverse=False)
-#dict_regions_sorted = sorted(dict_regions, key=itemgetter(0,1)
-
-def write_csv_file(file_in, file_out, dict_r, dict_m):
-	with open(file_in, 'w') as csv_file:
-		#csv.writer(csv_file)
-		header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
-		for coordinate in dict_r :
-			for sample_name in dict_r[coordinate]:
-				header += str(sample_name) + "_brut" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_moy_exon" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_patient_normalise" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_exon_normalise" + "\t"
-			for sample_name in dict_r[coordinate]:
-			 	header += str(sample_name) + "_ratio" + "\t"
-			break
-		csv_file.write(header + "\n")
-		for coordinate in dict_r :
-			csv_file.write(
-				str(coordinate[0]) + "\t" +
-				str(coordinate[1]) + "\t" +
-				str(coordinate[2]) + "\t" +
-				str(coordinate[3]) + "\t" +
-				str((dict_m[coordinate]["exon_mean_doc"])) + "\t"
-				)
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(dict_r[coordinate][sample_name]["brut"]) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-			for sample_name in dict_r[coordinate] :
-				csv_file.write(str(round(dict_r[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
-			csv_file.write("\n")
-	os.system("sort -k1.4n -k2,2n -k3,3n " + file_in + " > " + file_out)
-
-write_csv_file('cnv_analysis.txt', 'cnv_analysis_sorted.txt', dict_regions, dict_mean)
-if counter_ChrX > 0:
-	write_csv_file('cnv_analysis_ChrX.txt', 'cnv_analysis_ChrX_sorted.txt', dict_regions_ChrX, dict_mean)
-if counter_ChrY > 0:
-	write_csv_file('cnv_analysis_ChrY.txt', 'cnv_analysis_ChrY_sorted.txt', dict_regions_ChrY, dict_mean)
-
-# with open('cnv_analysis.txt', 'w') as csv_file:
-# 	writer = csv.writer(csv_file)
-# 	header = "Chr\tStart\tEnd\tRegionID\tMean DoC\t"
-# 	for coordinate in dict_regions :
-# 		for sample_name in dict_regions[coordinate]:
-# 			header += str(sample_name) + "_brut" + "\t"
-# 		for sample_name in dict_regions[coordinate]:
-# 			header += str(sample_name) + "_moy_exon" + "\t"
-# 		for sample_name in dict_regions[coordinate]:
-# 			header += str(sample_name) + "_patient_normalise" + "\t"
-# 		for sample_name in dict_regions[coordinate]:
-# 			header += str(sample_name) + "_exon_normalise" + "\t"
-# 		for sample_name in dict_regions[coordinate]:
-# 			header += str(sample_name) + "_ratio" + "\t"
-# 		break
-# 	csv_file.write(header + "\n")
-# 	for coordinate in dict_regions :
-# 		csv_file.write(
-# 			str(coordinate[0]) + "\t" +
-# 			str(coordinate[1]) + "\t" +
-# 			str(coordinate[2]) + "\t" +
-# 			str(coordinate[3]) + "\t" +
-# 			str(round(dict_mean[coordinate]["exon_mean_doc"], 2)) + "\t"
-# 			)
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(dict_regions[coordinate][sample_name]["brut"]) + "\t")
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-# 		for sample_name in dict_regions[coordinate] :
-# 			csv_file.write(str(round(dict_regions[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
-# 		csv_file.write("\n")
-
-# with open('cnv_analysis_ChrX.txt', 'w') as csv_file:
-# 	writer = csv.writer(csv_file)
-# 	header = "Chr\tStart\tend\tRegionID\tMean DoC\t"
-# 	for coordinate in dict_regions_ChrX :
-# 		for sample_name in dict_regions_ChrX[coordinate]:
-# 			header += str(sample_name) + "_brut" + "\t"
-# 		for sample_name in dict_regions_ChrX[coordinate]:
-# 			header += str(sample_name) + "_moy_exon" + "\t"
-# 		for sample_name in dict_regions_ChrX[coordinate]:
-# 			header += str(sample_name) + "_patient_normalise" + "\t"
-# 		for sample_name in dict_regions_ChrX[coordinate]:
-# 			header += str(sample_name) + "_exon_normalise" + "\t"
-# 		for sample_name in dict_regions_ChrX[coordinate]:
-# 			header += str(sample_name) + "_ratio" + "\t"
-# 		break
-# 	csv_file.write(header + "\n")
-# 	for coordinate in dict_regions_ChrX :
-# 		csv_file.write(
-# 			str(coordinate[0]) + "\t" +
-# 			str(coordinate[1]) + "\t" +
-# 			str(coordinate[2]) + "\t" +
-# 			str(coordinate[3]) + "\t" +
-# 			str(round(dict_mean[coordinate]["exon_mean_doc"], 2)) + "\t"
-# 			)
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(dict_regions_ChrX[coordinate][sample_name]["brut"]) + "\t")
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["moyenne_exon"], 2)) + "\t")
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["patient_normalise"],2)) + "\t")
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["exon_normalise"],2)) + "\t")
-# 		for sample_name in dict_regions_ChrX[coordinate] :
-# 			csv_file.write(str(round(dict_regions_ChrX[coordinate][sample_name]["ratio_normalise"],3)) + "\t")
-# 		csv_file.write("\n")
-
-# Sorting files, works on Mac only, if you are poor (like Charles) with other OS, go fuck yourself
-#os.system("sort -k1.4n -k2,2n -k3,3n cnv_analysis.txt > cnv_analysis_sorted.txt")
-#os.system("sort -k1.4n -k2,2n -k3,3n cnv_analysis_ChrX.txt > cnv_analysis_ChrX_sorted.txt")
-#
-
-
-
+#We build a small list of genes of interest
 ###########
-if (Panel != False):
+panel_list = []
+if Panel:
 	panel = open(Panel, 'r')
 	# panelreader = csv.DictReader(panel, delimiter='\t')
-	liste_panel = []
 	for gene in panel :
-		liste_panel.append(gene.rstrip())
+		panel_list.append(gene.rstrip())
 ###########
 
 
-### Excel convertion
+### Excel conversion
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -492,21 +274,17 @@ format1 = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
 # Add a format. Green fill with dark green text.
 format2 = workbook.add_format({'bg_color': '#C6EFCE', 'font_color': '#006100'})
 
-# summary.freeze_panes(1, 5)
-# summary.set_row(0, 20, style5)
-# summary.set_column('A:E', 15, style5)
-# summary.set_column('D:D', 25)
-last_col = number_of_file*5 + 4
-#sample number x number of data blocks + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
-last_col_2_hide = number_of_file*4 + 4
-#sample number x number of data blocks to hide + 5 first cols to show - 1 coz numbering begins at 0 (A = 0)
+last_col = number_of_file*6 + 5
+#sample number x number of data blocks + 6 first cols to show - 1 coz numbering begins at 0 (A = 0)
+last_col_2_hide = number_of_file*5 + 5
+#sample number x number of data blocks to hide + 6 first cols to show - 1 coz numbering begins at 0 (A = 0)
 
 def format_sheet(sheet, last_col):
-	sheet.freeze_panes(1, 5)
+	sheet.freeze_panes(1, 6)
 	sheet.set_row(0, 20, style5)
-	sheet.set_column('A:E', 15, style5)
-	sheet.set_column('D:D', 25)
-	sheet.set_column('E:E', 15, style6)
+	sheet.set_column('A:F', 15, style5)
+	sheet.set_column('E:E', 25)
+	sheet.set_column('F:F', 15, style6)
 	sheet.set_column(last_col+2, last_col+2, 15)
 	sheet.set_column(last_col+3, last_col+3, 15)
 	sheet.write(3, last_col+2, 'Legend:', style5)
@@ -521,12 +299,12 @@ def format_sheet(sheet, last_col):
 
 
 #worksheet summary to get only interesting stuff
-summary = workbook.add_worksheet(str("Summary"))
-format_sheet(summary, last_col)
+#summary = workbook.add_worksheet(str("Summary"))
+#format_sheet(summary, last_col)
 
-if (Panel != False):
-	worksheet2 = workbook.add_worksheet(str("Panel"))
-	format_sheet(worksheet2, last_col)
+#if (Panel != False):
+#	worksheet2 = workbook.add_worksheet(str("Panel"))
+#	format_sheet(worksheet2, last_col)
 	# worksheet2.freeze_panes(1, 5)
 	# worksheet2.set_row(0, 20, style5)
 	# worksheet2.set_column('A:E', 15, style5)
@@ -536,9 +314,8 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 	#add a conditionnal format to raw DoC
 	if (start == 0):
 		start = 2
-	cell_range = "E" + str(start) + ":T" + str(end)
+	cell_range = "F" + str(start) + ":F" + str(end)
 	#http://xlsxwriter.readthedocs.io/working_with_conditional_formats.html
-	#should work but does not: Excel does not recognize cell type as valid for 3 traffic lights- even using set_num_format
 	worksheet.conditional_format(
 		cell_range,
 		{'type': 'icon_set',
@@ -556,219 +333,333 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 #                                           'value': threshold,
 #                                           'format': format1})
 
-def write_small_worksheets(selected, start, first_row, small_worksheet, col_list, last_col, regex_r, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz):
-	#called inside writing_total to wirte summary and panel sheets
-	i = 0
-	uniq_selected = list(set(selected))
-	for column in col_list:
-		j = first_row
-		if(start > 0):
-			j = start
-		for item in range(len(column)):
-			if (item in uniq_selected):
-				if regex_r.search(column[0]):
-					if(item > 0):
-						if(float(column[item]) <= threshold_del_hmz):
-							small_worksheet.write(j, i , column[item],style1)
-						elif(float(column[item]) <= threshold_del_htz):
-							small_worksheet.write(j, i, column[item],style2)
-						elif(float(column[item]) <= threshold_dup_htz):
-							small_worksheet.write(j, i, column[item], style5)
-						elif(float(column[item]) <= threshold_dup_hmz):
-							small_worksheet.write(j, i, column[item],style3)
-						else :
-							small_worksheet.write(j, i, column[item],style4)
-					else:
-						small_worksheet.write(j, i, column[item], style5)
-				else:
-					try:
-						small_worksheet.write(j,i,int(column[item]))
-					except ValueError:
-						small_worksheet.write(j,i,column[item])
-				j+=1
-		i+=1
-	small_worksheet.write(9, last_col+2, "Sample ID", style5)
-	small_worksheet.write(9, last_col+3, "Predicted Gender", style5)
-	small_worksheet.write(9, last_col+4, "X ratio", style5)
-	if counter_ChrX > 0 or counter_ChrY > 0:
-		m = 10
-		for sample_name in dict_gender:
-			style = style8
-			if dict_gender[sample_name]["gender"] == 'female':
-				style = style7
-			small_worksheet.write(m, last_col+2, sample_name, style)
-			small_worksheet.write(m, last_col+3, dict_gender[sample_name]["gender"], style)
-			small_worksheet.write(m, last_col+4, round(dict_gender[sample_name]["xratio"], 2), style)
-			m += 1
-	return (uniq_selected, j)
 
 
-
-def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, last_col_2_hide, last_col, start1=0, start2=0):
-	# TODO: change it to parameter and save worksheet
-	# if panel:
-
-	worksheet = workbook.add_worksheet(str(worksheet))
+def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, reduced_regions, panel_regions, Panel, panel_list, psmX):
+	#sheet creation
+	worksheet = workbook.add_worksheet(str(name))
 	format_sheet(worksheet, last_col)
-	# worksheet.freeze_panes(1, 5)
-	# worksheet.set_row(0, 20, style5)
-	# worksheet.set_column('A:E', 15, style5)
-	# worksheet.set_column('D:D', 25)
-	#structure data from txt
-	f = open(str(txt_file), 'r+')
-	row_list = []
-	for row in f:
-		row_list.append(row.split('\t'))
-	# pp.pprint(row_list)
+	if quality == "summary":
+		worksheet.activate()
+	#i=first row
+	i=0
+	#dict iterations
+	for region in sorted(prm):
+		#j=col
+		j=0
+		if i == 0:
+			#sheet headers
+			headers = ("Region Number", "Chromosome", "Start", "End", "Annotation", "Mean DoC")
+			for text in headers:
+				worksheet.write(i, j, text, style5)
+				j+=1
+			for sample in prm[region]:
+				worksheet.write(i, j, sample + "_rawDoc", style5)
+				worksheet.write(i, j+number_of_file, sample + "_regionMeanOtherSamples", style5)
+				worksheet.write(i, j+(2*number_of_file), sample + "_normalisedRegion", style5)
+				worksheet.write(i, j+(3*number_of_file), sample + "_normalisedMeanOtherSamples", style5)
+				worksheet.write(i, j+(4*number_of_file), sample + "_ratioStdev", style5)
+				worksheet.write(i, j+(5*number_of_file), sample + "_normalisedRatio", style5)
+				j+=1
+		else:
+			for row_header in region:
+				worksheet.write(i, j, row_header)
+				if j == 4 and Panel:
+					for gene in panel_list:
+						if re.compile(r'.*' + gene + '.*').search(row_header) :
+							panel_regions[region] = prm[region]
+				j+=1
+			m=10
+			for sample in prm[region]:
+				j+=1
+				if i == 1 and psmX[sample]:
+					style = style8
+					if psmX[sample]["gender"] == 'female':
+						style = style7
+					worksheet.write(m, last_col+2, sample, style)
+					worksheet.write(m, last_col+3, psmX[sample]["gender"], style)
+					worksheet.write(m, last_col+4, round(psmX[sample]["xratio"], 2), style)
+					m+=1
+					
+				worksheet.write(i, j, prm[region][sample]["rawDoc"])
+				worksheet.write(i, j+number_of_file, prm[region][sample]["regionMeanOtherSamples"])
+				worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
+				worksheet.write(i, j+(3*number_of_file), prm[region][sample]["normalisedMeanOtherSamples"])
+				worksheet.write(i, j+(4*number_of_file), prm[region][sample]["ratioStdev"])
+				#define cell style - default style5: just bold
+				cell_style = style5
+				if quality == "global" and prm[region][sample]["MobiAdvice"] != 'Normal':
+					if region not in reduced_regions:
+						reduced_regions[region] = prm[region]
 
-	column_list = zip(*row_list)
-	column_list2 = zip(*row_list)
-	column_list3 = zip(*row_list)
-	i = 0
-	l = 0
-	interesting = []
-	gene4interest = []
-	regex_ratio = re.compile(r'(.*)_ratio$')
-	regex_noCNV = re.compile(r'no CNV')
-	regex_region = re.compile(r'RegionID')
-	for column in column_list:
-		for item in range(len(column)):
-			if regex_region.search(column[0]):
-				if (Panel != False):
-					for gene in liste_panel:
-						if re.compile(r'.*' + gene + '.*').search(column[item]) :
-							# print (column[item])
-							gene4interest.append(item)
-				else:
-					gene4interest.append(item)
-			if regex_ratio.search(column[0]):
-				if (item > 0) :
-					if(float(column[item]) <= threshold_del_hmz):
-						worksheet.write(item, i , column[item],style1)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					elif(float(column[item]) <= threshold_del_htz):
-						worksheet.write(item, i, column[item],style2)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					elif(float(column[item]) <= threshold_dup_htz):
-						worksheet.write(item, i, column[item], style5)
-					elif(float(column[item]) <= threshold_dup_hmz):
-						worksheet.write(item, i, column[item],style3)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-					else :
-						worksheet.write(item, i, column[item],style4)
-						for k in range(item-1,item+2):
-							if (k > 0):
-								interesting.append(k)
-				else:
-					worksheet.write(item, i, column[item], style5)
-			else:
-				try:
-					worksheet.write(item,i,int(column[item]))
-				except ValueError:
-					worksheet.write(item,i,column[item])
-			if (item == 0):
-				summary.write(item,i,column[item], style5)
-				# if panel:
-				if (Panel != False):
-					worksheet2.write(item,i,column[item], style5)
+				if prm[region][sample]["MobiAdvice"] == "HomDel":
+					cell_style = style1
+				elif prm[region][sample]["MobiAdvice"] == "HetDel":
+					cell_style = style2
+				elif prm[region][sample]["MobiAdvice"] == "HetDup":
+					cell_style = style3
+				elif prm[region][sample]["MobiAdvice"] == "HomDup":
+					cell_style = style4
+				worksheet.write(i, j+(5*number_of_file), prm[region][sample]["normalisedRatio"], cell_style)
+				last_sample = sample
+			#mean global doc for region
+			worksheet.write(i, 5, prm[region][last_sample]["regionMeanDoc"])
 		i+=1
-	#i = 0
-	(uniq_interesting, j) = write_small_worksheets(interesting, start1, 0, summary, column_list2, last_col, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
-	if (Panel != False):
-		(uniq_interesting_panel, l) = write_small_worksheets(gene4interest, start2, 1, worksheet2, column_list3, last_col,  regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
-		worksheet2.set_column(5,last_col_2_hide, None, None, {'level': 1, 'hidden': True})
-		add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
-	# uniq_interesting = list(set(interesting))
-	# for column in column_list2:
-	# 	j = 0
-	# 	if(start1 > 0):
-	# 		j = start1
-	# 	for item in range(len(column)):
-	# 		if (item in uniq_interesting):
-	# 			if regex_ratio.search(column[0]):
-	# 				if(item > 0):
-	# 					if(float(column[item]) <= threshold_del_hmz):
-	# 						summary.write(j, i , column[item],style1)
-	# 					elif(float(column[item]) <= threshold_del_htz):
-	# 						summary.write(j, i, column[item],style2)
-	# 					elif(float(column[item]) <= threshold_dup_htz):
-	# 						summary.write(j, i, column[item], style5)
-	# 					elif(float(column[item]) <= threshold_dup_hmz):
-	# 						summary.write(j, i, column[item],style3)
-	# 					else :
-	# 						summary.write(j, i, column[item],style4)
-	# 				else:
-	# 					summary.write(j, i, column[item], style5)
-	# 			else:
-	# 				summary.write(j,i,column[item])
-	# 			j+=1
-	# 	i+=1
-	
 
-	# i = 0
-	# # part to dev
-	# if (Panel != False):
-	# 	#l=0
-	# 	uniq_interesting_panel = list(set(gene4interest))
-	# 	for column in column_list3:
-	# 		l = 1
-	# 		if (start2 > 0 ):
-	# 			l = start2
-	# 		for item in range(len(column)):
-	# 			if (item in uniq_interesting_panel):
-	# 				if regex_ratio.search(column[0]):
-	# 					if(item > 0):
-	# 						if(float(column[item]) <= threshold_del_hmz):
-	# 							worksheet2.write(l, i , column[item],style1)
-	# 						elif(float(column[item]) <= threshold_del_htz):
-	# 							worksheet2.write(l, i, column[item],style2)
-	# 						elif(float(column[item]) <= threshold_dup_htz):
-	# 							worksheet2.write(l, i, column[item], style5)
-	# 						elif(float(column[item]) <= threshold_dup_hmz):
-	# 							worksheet2.write(l, i, column[item],style3)
-	# 						else :
-	# 							worksheet2.write(l, i, column[item],style4)
-	# 					else:
-	# 						worksheet2.write(l, i, column[item], style5)
-	# 				else:
-	# 					worksheet2.write(l,i,column[item])
-	# 				l+=1
-	# 		i+=1
-	# 	i = 0
-	# 	worksheet2.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
-	# 	add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
-	worksheet.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
-	worksheet.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
-	add_conditionnal_format(worksheet, 50, 2, len(row_list))
+	worksheet.set_column(6, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+	add_conditionnal_format(worksheet, 50, 2, len(list(prm)))
 	worksheet.protect()
-	summary.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
-	add_conditionnal_format(summary, 50, start1, start1 + len(uniq_interesting))
-	return (j,l)
 
-#worksheet for autosomes
-(start1, start2) = writing_total('Autosomes','cnv_analysis.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col)
-# print (start1, start2)
-#worksheet for ChrX
-start3 = 0
-start4 = 0
-if counter_ChrX > 0:
-	(start3, start4) = writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
-if counter_ChrY > 0:
-	if start3 > 0 and start4 > 0:
-		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start3, start4)
-	else:
-		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
+	if quality == "global":
+		return reduced_regions, panel_regions
 
-if (Panel != False):
-	worksheet2.protect()
-summary.protect()
+print("\nBuilding Excel File:")
+print("Autosomes worksheet...")
+summary_regions = {}
+panel_regions = {}
+
+(summary_regions, panel_regions) = print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_region_metrics, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
+
+if region_number_ChrX > 0:
+	print("ChrX worksheet...")
+	(summary_regions, panel_regions) = print_worksheet('Chromosome X', last_col, last_col_2_hide, workbook, per_region_metrics_ChrX, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
+if region_number_ChrY > 0:
+	print("ChrY worksheet...")
+	(summary_regions, panel_regions) = print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_region_metrics_ChrY, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
+
+#pp.pprint(summary_regions)
+
+print("Summary worksheet...")
+print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'summary', '', '', '', '', per_sample_metrics_ChrX)
+if Panel:
+	print("Panel worksheet...")
+	print_worksheet('Panel', last_col, last_col_2_hide, workbook, panel_regions, 'panel', '', '', '', '', per_sample_metrics_ChrX)
+#pp.pprint(per_sample_metrics_ChrX)
+
 workbook.close()
-#remove temporary files
-os.system("rm cnv_analysis.txt cnv_analysis_sorted.txt cnv_analysis_ChrX.txt cnv_analysis_ChrX_sorted.txt cnv_analysis_ChrY.txt cnv_analysis_ChrY_sorted.txt")
-print("\nDone!!!\n")
+
+
+sys.exit()
+
+
+
+
+
+
+#
+#def write_small_worksheets(selected, start, first_row, small_worksheet, col_list, last_col, regex_r, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz):
+#	#called inside writing_total to wirte summary and panel sheets
+#	i = 0
+#	uniq_selected = list(set(selected))
+#	for column in col_list:
+#		j = first_row
+#		if(start > 0):
+#			j = start
+#		for item in range(len(column)):
+#			if (item in uniq_selected):
+#				if regex_r.search(column[0]):
+#					if(item > 0):
+#						if(float(column[item]) <= threshold_del_hmz):
+#							small_worksheet.write(j, i , column[item],style1)
+#						elif(float(column[item]) <= threshold_del_htz):
+#							small_worksheet.write(j, i, column[item],style2)
+#						elif(float(column[item]) <= threshold_dup_htz):
+#							small_worksheet.write(j, i, column[item], style5)
+#						elif(float(column[item]) <= threshold_dup_hmz):
+#							small_worksheet.write(j, i, column[item],style3)
+#						else :
+#							small_worksheet.write(j, i, column[item],style4)
+#					else:
+#						small_worksheet.write(j, i, column[item], style5)
+#				else:
+#					try:
+#						small_worksheet.write(j,i,int(column[item]))
+#					except ValueError:
+#						small_worksheet.write(j,i,column[item])
+#				j+=1
+#		i+=1
+#	small_worksheet.write(9, last_col+2, "Sample ID", style5)
+#	small_worksheet.write(9, last_col+3, "Predicted Gender", style5)
+#	small_worksheet.write(9, last_col+4, "X ratio", style5)
+#	if region_number_ChrX > 0 or region_number_ChrY > 0:
+#		m = 10
+#		for sample_name in dict_gender:
+#			style = style8
+#			if dict_gender[sample_name]["gender"] == 'female':
+#				style = style7
+#			small_worksheet.write(m, last_col+2, sample_name, style)
+#			small_worksheet.write(m, last_col+3, dict_gender[sample_name]["gender"], style)
+#			small_worksheet.write(m, last_col+4, round(dict_gender[sample_name]["xratio"], 2), style)
+#			m += 1
+#	return (uniq_selected, j)
+#
+#
+#
+#def writing_total(worksheet, txt_file, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz, last_col_2_hide, last_col, start1=0, start2=0):
+#	# TODO: change it to parameter and save worksheet
+#	# if panel:
+#
+#	worksheet = workbook.add_worksheet(str(worksheet))
+#	format_sheet(worksheet, last_col)
+#	# worksheet.freeze_panes(1, 5)
+#	# worksheet.set_row(0, 20, style5)
+#	# worksheet.set_column('A:E', 15, style5)
+#	# worksheet.set_column('D:D', 25)
+#	#structure data from txt
+#	f = open(str(txt_file), 'r+')
+#	row_list = []
+#	for row in f:
+#		row_list.append(row.split('\t'))
+#	# pp.pprint(row_list)
+#
+#	column_list = zip(*row_list)
+#	column_list2 = zip(*row_list)
+#	column_list3 = zip(*row_list)
+#	i = 0
+#	l = 0
+#	interesting = []
+#	gene4interest = []
+#	regex_ratio = re.compile(r'(.*)_ratio$')
+#	regex_noCNV = re.compile(r'no CNV')
+#	regex_region = re.compile(r'RegionID')
+#	for column in column_list:
+#		for item in range(len(column)):
+#			if regex_region.search(column[0]):
+#				if (Panel != False):
+#					for gene in liste_panel:
+#						if re.compile(r'.*' + gene + '.*').search(column[item]) :
+#							# print (column[item])
+#							gene4interest.append(item)
+#				else:
+#					gene4interest.append(item)
+#			if regex_ratio.search(column[0]):
+#				if (item > 0) :
+#					if(float(column[item]) <= threshold_del_hmz):
+#						worksheet.write(item, i , column[item],style1)
+#						for k in range(item-1,item+2):
+#							if (k > 0):
+#								interesting.append(k)
+#					elif(float(column[item]) <= threshold_del_htz):
+#						worksheet.write(item, i, column[item],style2)
+#						for k in range(item-1,item+2):
+#							if (k > 0):
+#								interesting.append(k)
+#					elif(float(column[item]) <= threshold_dup_htz):
+#						worksheet.write(item, i, column[item], style5)
+#					elif(float(column[item]) <= threshold_dup_hmz):
+#						worksheet.write(item, i, column[item],style3)
+#						for k in range(item-1,item+2):
+#							if (k > 0):
+#								interesting.append(k)
+#					else :
+#						worksheet.write(item, i, column[item],style4)
+#						for k in range(item-1,item+2):
+#							if (k > 0):
+#								interesting.append(k)
+#				else:
+#					worksheet.write(item, i, column[item], style5)
+#			else:
+#				try:
+#					worksheet.write(item,i,int(column[item]))
+#				except ValueError:
+#					worksheet.write(item,i,column[item])
+#			if (item == 0):
+#				summary.write(item,i,column[item], style5)
+#				# if panel:
+#				if (Panel != False):
+#					worksheet2.write(item,i,column[item], style5)
+#		i+=1
+#	#i = 0
+#	(uniq_interesting, j) = write_small_worksheets(interesting, start1, 0, summary, column_list2, last_col, regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
+#	if (Panel != False):
+#		(uniq_interesting_panel, l) = write_small_worksheets(gene4interest, start2, 1, worksheet2, column_list3, last_col,  regex_ratio, threshold_del_hmz, threshold_del_htz, threshold_dup_htz, threshold_dup_hmz)
+#		worksheet2.set_column(5,last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+#		add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
+#	# uniq_interesting = list(set(interesting))
+#	# for column in column_list2:
+#	# 	j = 0
+#	# 	if(start1 > 0):
+#	# 		j = start1
+#	# 	for item in range(len(column)):
+#	# 		if (item in uniq_interesting):
+#	# 			if regex_ratio.search(column[0]):
+#	# 				if(item > 0):
+#	# 					if(float(column[item]) <= threshold_del_hmz):
+#	# 						summary.write(j, i , column[item],style1)
+#	# 					elif(float(column[item]) <= threshold_del_htz):
+#	# 						summary.write(j, i, column[item],style2)
+#	# 					elif(float(column[item]) <= threshold_dup_htz):
+#	# 						summary.write(j, i, column[item], style5)
+#	# 					elif(float(column[item]) <= threshold_dup_hmz):
+#	# 						summary.write(j, i, column[item],style3)
+#	# 					else :
+#	# 						summary.write(j, i, column[item],style4)
+#	# 				else:
+#	# 					summary.write(j, i, column[item], style5)
+#	# 			else:
+#	# 				summary.write(j,i,column[item])
+#	# 			j+=1
+#	# 	i+=1
+#	
+#
+#	# i = 0
+#	# # part to dev
+#	# if (Panel != False):
+#	# 	#l=0
+#	# 	uniq_interesting_panel = list(set(gene4interest))
+#	# 	for column in column_list3:
+#	# 		l = 1
+#	# 		if (start2 > 0 ):
+#	# 			l = start2
+#	# 		for item in range(len(column)):
+#	# 			if (item in uniq_interesting_panel):
+#	# 				if regex_ratio.search(column[0]):
+#	# 					if(item > 0):
+#	# 						if(float(column[item]) <= threshold_del_hmz):
+#	# 							worksheet2.write(l, i , column[item],style1)
+#	# 						elif(float(column[item]) <= threshold_del_htz):
+#	# 							worksheet2.write(l, i, column[item],style2)
+#	# 						elif(float(column[item]) <= threshold_dup_htz):
+#	# 							worksheet2.write(l, i, column[item], style5)
+#	# 						elif(float(column[item]) <= threshold_dup_hmz):
+#	# 							worksheet2.write(l, i, column[item],style3)
+#	# 						else :
+#	# 							worksheet2.write(l, i, column[item],style4)
+#	# 					else:
+#	# 						worksheet2.write(l, i, column[item], style5)
+#	# 				else:
+#	# 					worksheet2.write(l,i,column[item])
+#	# 				l+=1
+#	# 		i+=1
+#	# 	i = 0
+#	# 	worksheet2.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+#	# 	add_conditionnal_format(worksheet2, 50, start2, start2 + len(gene4interest))
+#	worksheet.set_column('F:BM', None, None, {'level': 1, 'hidden': True})
+#	worksheet.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+#	add_conditionnal_format(worksheet, 50, 2, len(row_list))
+#	worksheet.protect()
+#	summary.set_column(5, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
+#	add_conditionnal_format(summary, 50, start1, start1 + len(uniq_interesting))
+#	return (j,l)
+#
+##worksheet for autosomes
+#(start1, start2) = writing_total('Autosomes','cnv_analysis_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col)
+## print (start1, start2)
+##worksheet for ChrX
+#start3 = 0
+#start4 = 0
+#if region_number_ChrX > 0:
+#	(start3, start4) = writing_total('Chromosome_X','cnv_analysis_ChrX_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
+#if region_number_ChrY > 0:
+#	if start3 > 0 and start4 > 0:
+#		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start3, start4)
+#	else:
+#		writing_total('Chromosome_Y','cnv_analysis_ChrY_sorted.txt', 0.3, 0.7, 1.3, 1.7, last_col_2_hide, last_col, start1, start2)
+#
+#if (Panel != False):
+#	worksheet2.protect()
+#summary.protect()
+#workbook.close()
+##remove temporary files
+#os.system("rm cnv_analysis.txt cnv_analysis_sorted.txt cnv_analysis_ChrX.txt cnv_analysis_ChrX_sorted.txt cnv_analysis_ChrY.txt cnv_analysis_ChrY_sorted.txt")
+#print("\nDone!!!\n")
