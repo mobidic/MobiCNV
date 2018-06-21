@@ -1,5 +1,5 @@
 # MobiCNV
-CNV analysis based on the depth of covergae for gene panels and exomes from Miseq Reporter, Local Run Manager data or samtools (see below)
+CNV analysis based on the depth of coverage for gene panels and exomes from Miseq Reporter, Local Run Manager data or samtools (see below)
 
 ## Installation
 MobiCNV is a simple python script, which runs on python > 2.5 or 3 (tested on 2.7 and 3.5 and above)
