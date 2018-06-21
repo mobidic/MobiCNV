@@ -75,6 +75,7 @@ The fifth column shows the mean coverage for all samples for the considered ROI,
 
 MobiCNV works with hg19 or hg38 data, even with hg18 in theory.
 
+<!---
 ### [Work in progress] CNV annotation
 
 #### 1. Create master file annotation
@@ -146,7 +147,7 @@ awk 'BEGIN { FS = OFS = "\t" }{print $1,$2,$3,$4,$5,$21,$11,$10,$12,$31,$32,$40,
 #### Dependencies
 
 bedtools, pandas
-
+-->
 
 --------------------------------------------------------------------------------
 
