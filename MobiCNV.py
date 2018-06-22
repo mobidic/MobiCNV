@@ -216,15 +216,15 @@ def compute_ratio(psm, prm, region_number):
 	  			prm[coordinate][sample_name]["MobiAdvice"] = "HomDel"
 	  		elif ratio > 1.7:
 	  			prm[coordinate][sample_name]["MobiAdvice"] = "HomDup"
-	  		elif ratio > 0.8 and ratio < 1.2:
+	  		elif ratio > 0.7 and ratio < 1.35:
 	  			prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	  		elif ratio >= 0.3 and ratio <= 0.8:
+	  		elif ratio >= 0.3 and ratio <= 0.75:
 	  			dynamic_threshold = 1 - (xfactor * prm[coordinate][sample_name]["ratioStdev"])
 	  			if ratio < dynamic_threshold:
 	  				prm[coordinate][sample_name]["MobiAdvice"] = "HetDel"
 	  			else:
 	  				prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	  		elif ratio >= 1.2 and ratio <= 1.7:
+	  		elif ratio >= 1.35 and ratio <= 1.7:
 	  			dynamic_threshold = 1 + (xfactor * prm[coordinate][sample_name]["ratioStdev"])
 	  			if ratio > dynamic_threshold:
 	  				prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
@@ -238,9 +238,9 @@ if region_number_ChrX > 0:
 if region_number_ChrY > 0:
 	(per_sample_metrics_ChrY, per_region_metrics_ChrY) = compute_ratio(per_sample_metrics_ChrY, per_region_metrics_ChrY, region_number_ChrY)
 
-#pp.pprint(per_region_metrics)
-#pp.pprint(per_region_metrics_ChrX)
-#sys.exit()
+# pp.pprint(per_region_metrics)
+# pp.pprint(per_region_metrics_ChrX)
+# sys.exit()
 
 
 #We build a small list of genes of interest
@@ -297,7 +297,6 @@ def format_sheet(sheet, last_col):
 	sheet.write(6, last_col+3, 'Heterozygous duplication', style5)
 	sheet.write(7, last_col+3, 'Homozygous duplication', style5)
 
-
 #worksheet summary to get only interesting stuff
 #summary = workbook.add_worksheet(str("Summary"))
 #format_sheet(summary, last_col)
@@ -333,8 +332,6 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 #                                           'value': threshold,
 #                                           'format': format1})
 
-
-
 def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, reduced_regions, panel_regions, Panel, panel_list, psmX):
 	#sheet creation
 	worksheet = workbook.add_worksheet(str(name))
@@ -342,11 +339,11 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 	if quality == "summary":
 		worksheet.activate()
 	#i=first row
-	i=0
+	i=j=0
 	#dict iterations
 	for region in sorted(prm):
 		#j=col
-		j=0
+		#j=0
 		if i == 0:
 			#sheet headers
 			headers = ("Region Number", "Chromosome", "Start", "End", "Annotation", "Mean DoC")
@@ -361,49 +358,51 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 				worksheet.write(i, j+(4*number_of_file), sample + "_ratioStdev", style5)
 				worksheet.write(i, j+(5*number_of_file), sample + "_normalisedRatio", style5)
 				j+=1
-		else:
-			for row_header in region:
-				worksheet.write(i, j, row_header)
-				if j == 4 and Panel:
-					for gene in panel_list:
-						if re.compile(r'.*' + gene + '.*').search(row_header) :
-							panel_regions[region] = prm[region]
-				j+=1
-			m=10
-			for sample in prm[region]:
-				j+=1
-				if i == 1 and psmX[sample]:
-					style = style8
-					if psmX[sample]["gender"] == 'female':
-						style = style7
-					worksheet.write(m, last_col+2, sample, style)
-					worksheet.write(m, last_col+3, psmX[sample]["gender"], style)
-					worksheet.write(m, last_col+4, round(psmX[sample]["xratio"], 2), style)
-					m+=1
-					
-				worksheet.write(i, j, prm[region][sample]["rawDoc"])
-				worksheet.write(i, j+number_of_file, prm[region][sample]["regionMeanOtherSamples"])
-				worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
-				worksheet.write(i, j+(3*number_of_file), prm[region][sample]["normalisedMeanOtherSamples"])
-				worksheet.write(i, j+(4*number_of_file), prm[region][sample]["ratioStdev"])
-				#define cell style - default style5: just bold
-				cell_style = style5
-				if quality == "global" and prm[region][sample]["MobiAdvice"] != 'Normal':
-					if region not in reduced_regions:
-						reduced_regions[region] = prm[region]
+			i+=1
+		#else:
+		j=0
+		for row_header in region:
+			worksheet.write(i, j, row_header)
+			if j == 4 and Panel:
+				for gene in panel_list:
+					if re.compile(r'.*' + gene + '.*').search(row_header) :
+						panel_regions[region] = prm[region]
+			j+=1
+		m=10
+		for sample in prm[region]:
+			j+=1
+			if i == 1 and psmX[sample]:
+				style = style8
+				if psmX[sample]["gender"] == 'female':
+					style = style7
+				worksheet.write(m, last_col+2, sample, style)
+				worksheet.write(m, last_col+3, psmX[sample]["gender"], style)
+				worksheet.write(m, last_col+4, round(psmX[sample]["xratio"], 2), style)
+				m+=1
+				
+			worksheet.write(i, j, prm[region][sample]["rawDoc"])
+			worksheet.write(i, j+number_of_file, prm[region][sample]["regionMeanOtherSamples"])
+			worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
+			worksheet.write(i, j+(3*number_of_file), prm[region][sample]["normalisedMeanOtherSamples"])
+			worksheet.write(i, j+(4*number_of_file), prm[region][sample]["ratioStdev"])
+			#define cell style - default style5: just bold
+			cell_style = style5
+			if quality == "global" and prm[region][sample]["MobiAdvice"] != 'Normal':
+				if region not in reduced_regions:
+					reduced_regions[region] = prm[region]
 
-				if prm[region][sample]["MobiAdvice"] == "HomDel":
-					cell_style = style1
-				elif prm[region][sample]["MobiAdvice"] == "HetDel":
-					cell_style = style2
-				elif prm[region][sample]["MobiAdvice"] == "HetDup":
-					cell_style = style3
-				elif prm[region][sample]["MobiAdvice"] == "HomDup":
-					cell_style = style4
-				worksheet.write(i, j+(5*number_of_file), prm[region][sample]["normalisedRatio"], cell_style)
-				last_sample = sample
-			#mean global doc for region
-			worksheet.write(i, 5, prm[region][last_sample]["regionMeanDoc"])
+			if prm[region][sample]["MobiAdvice"] == "HomDel":
+				cell_style = style1
+			elif prm[region][sample]["MobiAdvice"] == "HetDel":
+				cell_style = style2
+			elif prm[region][sample]["MobiAdvice"] == "HetDup":
+				cell_style = style3
+			elif prm[region][sample]["MobiAdvice"] == "HomDup":
+				cell_style = style4
+			worksheet.write(i, j+(5*number_of_file), prm[region][sample]["normalisedRatio"], cell_style)
+			last_sample = sample
+		#mean global doc for region
+		worksheet.write(i, 5, prm[region][last_sample]["regionMeanDoc"])
 		i+=1
 
 	worksheet.set_column(6, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
@@ -440,9 +439,6 @@ workbook.close()
 
 
 sys.exit()
-
-
-
 
 
 
