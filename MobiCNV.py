@@ -82,7 +82,8 @@ for i in filelist:
 		print(i)
 		number_of_file += 1
 		baseName = matchObj.group(1)
-		keyAuto = keyX = keyY = 1
+		#keyAuto = keyX = keyY = 1
+		key = 1
 		#we read and each line is converted into a dictionnary
 		#2 dicts, one per sample for global metrics and one more detailed for per region metrics
 		#Each dict type (region, sample) is in fact composed of up to 3 dicts, one for autosomes, one for chrX, and one for chrY
@@ -94,16 +95,16 @@ for i in filelist:
 				expression = r'^.*#.*$' # remove header
 				#autosomes
 				if not re.match(expression, line[0]) and line[0] != "chrX" and line[0] != "chrY":
-					(region_number, per_region_metrics, per_sample_metrics) = build_dict(baseName, line, region_number, per_region_metrics, per_sample_metrics, keyAuto)
-					keyAuto+=1
+					(region_number, per_region_metrics, per_sample_metrics) = build_dict(baseName, line, region_number, per_region_metrics, per_sample_metrics, key)
+					key+=1
 				#chrX
 				elif not re.match(expression, line[0]) and (line[0] == "chrX" or line[0] == "X"):
-					(region_number_ChrX, per_region_metrics_ChrX, per_sample_metrics_ChrX) = build_dict(baseName, line, region_number_ChrX, per_region_metrics_ChrX, per_sample_metrics_ChrX, keyX)
-					keyX+=1
+					(region_number_ChrX, per_region_metrics_ChrX, per_sample_metrics_ChrX) = build_dict(baseName, line, region_number_ChrX, per_region_metrics_ChrX, per_sample_metrics_ChrX, key)
+					key+=1
 				#chrY
 				elif not re.match(expression, line[0]) and (line[0] == "chrY" or line[0] == "Y"):
-					(region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY) = build_dict(baseName, line, region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY, keyY)
-					keyY+=1
+					(region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY) = build_dict(baseName, line, region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY, key)
+					key+=1
 
 #############
 
