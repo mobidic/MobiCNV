@@ -208,23 +208,27 @@ def compute_ratio(psm, prm, region_number):
 	#between 1.2 and 1.7 =>supect het del then
 	#	between 1 and 1+2.5sigma => normal
 	#	>1+2.5sigma => het dup
-	xfactor = 2.5
+	het_high = 1.3
+	het_low = 0.7
+	hom_high = 1.7
+	hom_low = 0.3
+	xfactor = 2
 	for coordinate in prm :
 	  	for sample_name in prm[coordinate]:
 	  		ratio = prm[coordinate][sample_name]["normalisedRatio"]
-	  		if ratio < 0.3:
+	  		if ratio < hom_low:
 	  			prm[coordinate][sample_name]["MobiAdvice"] = "HomDel"
-	  		elif ratio > 1.7:
+	  		elif ratio > hom_high:
 	  			prm[coordinate][sample_name]["MobiAdvice"] = "HomDup"
-	  		elif ratio > 0.7 and ratio < 1.35:
+	  		elif ratio > het_low and ratio < het_high:
 	  			prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	  		elif ratio >= 0.3 and ratio <= 0.75:
+	  		elif ratio >= hom_low and ratio <= het_low:
 	  			dynamic_threshold = 1 - (xfactor * prm[coordinate][sample_name]["ratioStdev"])
 	  			if ratio < dynamic_threshold:
 	  				prm[coordinate][sample_name]["MobiAdvice"] = "HetDel"
 	  			else:
 	  				prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	  		elif ratio >= 1.35 and ratio <= 1.7:
+	  		elif ratio >= het_high and ratio <= hom_high:
 	  			dynamic_threshold = 1 + (xfactor * prm[coordinate][sample_name]["ratioStdev"])
 	  			if ratio > dynamic_threshold:
 	  				prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
