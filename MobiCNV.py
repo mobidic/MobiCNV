@@ -411,7 +411,7 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 		i+=1
 
 	worksheet.set_column(6, last_col_2_hide, None, None, {'level': 1, 'hidden': True})
-	add_conditionnal_format(worksheet, 50, 2, len(list(prm)))
+	add_conditionnal_format(worksheet, 50, 2, len(list(prm))+1)
 	worksheet.protect()
 
 	if quality == "global":
