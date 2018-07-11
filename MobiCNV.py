@@ -376,7 +376,7 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 		m=10
 		for sample in prm[region]:
 			j+=1
-			if i == 1 and psmX[sample]:
+			if i == 1 and sample in psmX:
 				style = style8
 				if psmX[sample]["gender"] == 'female':
 					style = style7
