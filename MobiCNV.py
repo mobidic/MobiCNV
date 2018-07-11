@@ -131,7 +131,7 @@ if region_number_ChrY > 0:
 	for sample_name in per_sample_metrics_ChrY:
 			per_sample_metrics_ChrY[sample_name]["meanRawDoc"] = per_sample_metrics_ChrY[sample_name]["rawDocSum"]/ region_number_ChrY
 			if (per_sample_metrics_ChrY[sample_name]["meanRawDoc"] > 1 and per_sample_metrics_ChrX[sample_name]["gender"] != "male"):
-				print("\n\nWARNING Gender inconsistancy for " + sample_name + " reads on Y chr with X ratio > 0.65\n\n")
+				print("\nWARNING Gender inconsistancy for " + sample_name + " reads on Y chr with X ratio > 0.65\n")
 				per_sample_metrics_ChrX[sample_name]["gender"] = "male/female"
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
@@ -337,7 +337,7 @@ def add_conditionnal_format(worksheet, threshold, start, end):
 #                                           'value': threshold,
 #                                           'format': format1})
 
-def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, reduced_regions, panel_regions, Panel, panel_list, psmX):
+def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, reduced_regions, panel_regions, low_cov_regions, Panel, panel_list, psmX):
 	#sheet creation
 	worksheet = workbook.add_worksheet(str(name))
 	format_sheet(worksheet, last_col)
@@ -396,9 +396,10 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 					#here we check if number_of_sample > 4 and meanDoC all samples == 0 => we don't put that region in the summary sheet
 					if number_of_file <= 3:
 						reduced_regions[region] = prm[region]
-					elif prm[region][sample]["regionMeanDoc"] > 0:
+					elif prm[region][sample]["regionMeanDoc"] > 100:
 						reduced_regions[region] = prm[region]
-					print(str(number_of_file) + "-" + str(prm[region][sample]["regionMeanDoc"]))
+					elif prm[region][sample]["regionMeanDoc"] > 0:
+						low_cov_regions[region] = prm[region]
 			if prm[region][sample]["MobiAdvice"] == "HomDel":
 				cell_style = style1
 			elif prm[region][sample]["MobiAdvice"] == "HetDel":
@@ -418,30 +419,33 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 	worksheet.protect()
 
 	if quality == "global":
-		return reduced_regions, panel_regions
+		return reduced_regions, low_cov_regions, panel_regions
 
 print("\nBuilding Excel File:")
 print("Autosomes worksheet...")
 summary_regions = {}
-#low_cov_summary_regions = {}
+low_cov_summary_regions = {}
 panel_regions = {}
 
-(summary_regions, panel_regions) = print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_region_metrics, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
+(summary_regions, low_cov_summary_regions, panel_regions) = print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_region_metrics, 'global', summary_regions, panel_regions, low_cov_summary_regions, Panel, panel_list, per_sample_metrics_ChrX)
 
 if region_number_ChrX > 0:
 	print("ChrX worksheet...")
-	(summary_regions, panel_regions) = print_worksheet('Chromosome X', last_col, last_col_2_hide, workbook, per_region_metrics_ChrX, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
+	(summary_regions, low_cov_summary_regions, panel_regions) = print_worksheet('Chromosome X', last_col, last_col_2_hide, workbook, per_region_metrics_ChrX, 'global', summary_regions, panel_regions, low_cov_summary_regions, Panel, panel_list, per_sample_metrics_ChrX)
 if region_number_ChrY > 0:
 	print("ChrY worksheet...")
-	(summary_regions, panel_regions) = print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_region_metrics_ChrY, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
+	(summary_regions, low_cov_summary_regions, panel_regions) = print_worksheet('Chromosome Y', last_col, last_col_2_hide, workbook, per_region_metrics_ChrY, 'global', summary_regions, panel_regions, low_cov_summary_regions, Panel, panel_list, per_sample_metrics_ChrX)
 
 #pp.pprint(summary_regions)
 
 print("Summary worksheet...")
-print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'summary', '', '', '', '', per_sample_metrics_ChrX)
+print_worksheet('Summary', last_col, last_col_2_hide, workbook, summary_regions, 'summary', '', '', '', '', '', per_sample_metrics_ChrX)
+if len(low_cov_summary_regions) > 0:
+	print("Low Coverage Summary Worksheet...")
+	print_worksheet('LowCovSummary', last_col, last_col_2_hide, workbook, low_cov_summary_regions, 'low_cov_summary', '', '', '', '', '', per_sample_metrics_ChrX)
 if Panel:
 	print("Panel worksheet...")
-	print_worksheet('Panel', last_col, last_col_2_hide, workbook, panel_regions, 'panel', '', '', '', '', per_sample_metrics_ChrX)
+	print_worksheet('Panel', last_col, last_col_2_hide, workbook, panel_regions, 'panel', '', '', '', '', '', per_sample_metrics_ChrX)
 #pp.pprint(per_sample_metrics_ChrX)
 
 workbook.close()
