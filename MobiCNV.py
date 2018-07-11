@@ -131,7 +131,7 @@ if region_number_ChrY > 0:
 	for sample_name in per_sample_metrics_ChrY:
 			per_sample_metrics_ChrY[sample_name]["meanRawDoc"] = per_sample_metrics_ChrY[sample_name]["rawDocSum"]/ region_number_ChrY
 			if (per_sample_metrics_ChrY[sample_name]["meanRawDoc"] > 1 and per_sample_metrics_ChrX[sample_name]["gender"] != "male"):
-				print("\n\nWARNING Gender inconsistancy for " + sample_name + "reads on Y chr with X ratio > 0.65\n\n")
+				print("\n\nWARNING Gender inconsistancy for " + sample_name + " reads on Y chr with X ratio > 0.65\n\n")
 				per_sample_metrics_ChrX[sample_name]["gender"] = "male/female"
 #############
 # Itération sur le dictionnaire patient pour calculer la moyenne par exon et l'exon normalisé
@@ -383,8 +383,7 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 				worksheet.write(m, last_col+2, sample, style)
 				worksheet.write(m, last_col+3, psmX[sample]["gender"], style)
 				worksheet.write(m, last_col+4, round(psmX[sample]["xratio"], 2), style)
-				m+=1
-				
+				m+=1	
 			worksheet.write(i, j, prm[region][sample]["rawDoc"])
 			worksheet.write(i, j+number_of_file, prm[region][sample]["regionMeanOtherSamples"])
 			worksheet.write(i, j+(2*number_of_file), prm[region][sample]["normalisedRegion"])
@@ -394,8 +393,12 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 			cell_style = style5
 			if quality == "global" and prm[region][sample]["MobiAdvice"] != 'Normal':
 				if region not in reduced_regions:
-					reduced_regions[region] = prm[region]
-
+					#here we check if number_of_sample > 4 and meanDoC all samples == 0 => we don't put that region in the summary sheet
+					if number_of_file <= 3:
+						reduced_regions[region] = prm[region]
+					elif prm[region][sample]["regionMeanDoc"] > 0:
+						reduced_regions[region] = prm[region]
+					print(str(number_of_file) + "-" + str(prm[region][sample]["regionMeanDoc"]))
 			if prm[region][sample]["MobiAdvice"] == "HomDel":
 				cell_style = style1
 			elif prm[region][sample]["MobiAdvice"] == "HetDel":
@@ -420,6 +423,7 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 print("\nBuilding Excel File:")
 print("Autosomes worksheet...")
 summary_regions = {}
+#low_cov_summary_regions = {}
 panel_regions = {}
 
 (summary_regions, panel_regions) = print_worksheet('Autosomes', last_col, last_col_2_hide, workbook, per_region_metrics, 'global', summary_regions, panel_regions, Panel, panel_list, per_sample_metrics_ChrX)
