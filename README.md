@@ -40,7 +40,11 @@ If you use another commercial pipeline, or, better, a custom pipeline, you just 
 ```bash
 $samtools bedcov -Q 30 Intervals.bed sample.bam | sort -k1,1 -k2,2n -k3,3n | awk 'BEGIN {OFS="\t"}{a=($3-$2+1);b=($7/a);print $1,$2,$3,$4,b,"+","+"}' > sample_coverage.tsv
 ```
-Intervals.bed being your ROI file. Please note it is really better to annotate your ROIs with gene names and exons (4th column) in order to interpret your data. It is also mandatory if you want to use the [gene panel](#use-a-gene-panel) option.
+
+Please note that in the command above, the awk part b=($7/a) should be changed depending on your original BED file. The rule is simple: if your original BED has 4 columns, then you should replace $7 with $5, one column more than the number of columns present in the original BED (count beginning at 1).
+
+
+Intervals.bed is your ROI file. Please note it is really better to annotate your ROIs with gene names and exons (4th column) in order to interpret your data. It is also mandatory if you want to use the [gene panel](#use-a-gene-panel) option. To help with this task, you might want to have a look at [MobiBedAnnotator](https://github.com/mobidic/MobiBedAnnotator).
 
 Put all your coverage files in a single directory which you can provide as input for MobiCNV.
 
