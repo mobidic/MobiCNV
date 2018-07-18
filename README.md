@@ -62,7 +62,7 @@ Either tsv or csv input files.
 
 #### Use VCFs
 
-You can optionally provide a path to a directory containing your sample's VCFs. These can be one VCF per sample, or a merged CVF for all samples, or a mix. You are not required to provide a VCF for all samples. Basically, MobiCNV will check all VCF files until it finds the current sample. MobiCNV will then store all heterozygous calls in order to reduce the false positive rate of heterozygous deletions. 
+You can optionally provide a path to a directory containing your sample's VCFs. These can be one VCF per sample, or a merged VCF for all samples, or a mix. You are not required to provide a VCF for all samples. Basically, MobiCNV will check all VCF files until it finds the current sample. MobiCNV will then store all heterozygous calls in order to reduce the false positive rate of heterozygous deletions. 
 
 ### Run
 
