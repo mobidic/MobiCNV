@@ -143,7 +143,8 @@ for i in file_list:
 							for record in vcf_reader:
 								#we store only heterozygous calls or all cals on chrX to treat male dels on X chr
 								sample_call = record.genotype(sample)
-								if sample_call.is_het == True or (record.CHROM == 'chrX' or record.CHROM == 'X'):
+								#if sample_call.is_het == True or (record.CHROM == 'chrX' or record.CHROM == 'X'):
+								if sample_call.is_het == True:
 									chrom = record.CHROM
 									if not re.match(chr_reg, chrom):
 										vcf_chr_semaph = True
@@ -287,9 +288,9 @@ def compute_ratio(psm, prm, region_number):
 						for var_pos in variants:
 							#chr must match
 							if var_pos[0] == coordinate[1]:
-								if var_pos[0] == 'chrX' and "gender" in psm[sample_name] and psm[sample_name]["gender"] == 'female':
-									break
-								elif int(var_pos[1]) >= int(coordinate[2]) and int(var_pos[1]) <= int(coordinate[3]):
+								#if var_pos[0] == 'chrX' and "gender" in psm[sample_name] and psm[sample_name]["gender"] == 'female':
+								#	break
+								if int(var_pos[1]) >= int(coordinate[2]) and int(var_pos[1]) <= int(coordinate[3]):
 									prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
 									vcf_semaph = 1
 									r+=1
