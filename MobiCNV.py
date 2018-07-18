@@ -270,17 +270,17 @@ def compute_ratio(psm, prm, region_number):
 	s=0
 	for coordinate in prm :
 		#print(coordinate)
-	  	for sample_name in prm[coordinate]:
-	  		ratio = prm[coordinate][sample_name]["normalisedRatio"]
-	  		if ratio < hom_low:
-	  			prm[coordinate][sample_name]["MobiAdvice"] = "HomDel"
-	  		elif ratio > hom_high:
-	  			prm[coordinate][sample_name]["MobiAdvice"] = "HomDup"
-	  		elif ratio > het_low and ratio < het_high:
-	  			prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	  		elif ratio >= hom_low and ratio <= het_low:
-	  			dynamic_threshold = 1 - (xfactor * prm[coordinate][sample_name]["ratioStdev"])
-	  			if ratio < dynamic_threshold:
+		for sample_name in prm[coordinate]:
+			ratio = prm[coordinate][sample_name]["normalisedRatio"]
+			if ratio < hom_low:
+				prm[coordinate][sample_name]["MobiAdvice"] = "HomDel"
+			elif ratio > hom_high:
+				prm[coordinate][sample_name]["MobiAdvice"] = "HomDup"
+			elif ratio > het_low and ratio < het_high:
+				prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+			elif ratio >= hom_low and ratio <= het_low:
+				dynamic_threshold = 1 - (xfactor * prm[coordinate][sample_name]["ratioStdev"])
+				if ratio < dynamic_threshold:
 					vcf_semaph = 0
 					#check against VCF info (het variants) if relevant
 					if VcfDir != False:
@@ -290,22 +290,22 @@ def compute_ratio(psm, prm, region_number):
 								if var_pos[0] == 'chrX' and "gender" in psm[sample_name] and psm[sample_name]["gender"] == 'female':
 									break
 								elif int(var_pos[1]) >= int(coordinate[2]) and int(var_pos[1]) <= int(coordinate[3]):
-	  								prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+									prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
 									vcf_semaph = 1
 									r+=1
 									#print(var_pos[0], coordinate[1], var_pos[1], coordinate[2], coordinate[3])
 									break
 					if vcf_semaph == 0:
-	  					prm[coordinate][sample_name]["MobiAdvice"] = "HetDel"
+						prm[coordinate][sample_name]["MobiAdvice"] = "HetDel"
 						s+=1
-	  			else:
-	  				prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	  		elif ratio >= het_high and ratio <= hom_high:
-	  			dynamic_threshold = 1 + (xfactor * prm[coordinate][sample_name]["ratioStdev"])
-	  			if ratio > dynamic_threshold:
-	  				prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
-	  			else:
-	  				prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+				else:
+					prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+			elif ratio >= het_high and ratio <= hom_high:
+				dynamic_threshold = 1 + (xfactor * prm[coordinate][sample_name]["ratioStdev"])
+				if ratio > dynamic_threshold:
+					prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
+				else:
+					prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
 	print("HetDels: " + str(s) + " vcfed: " + str(r))
 	return (psm, prm)
 
