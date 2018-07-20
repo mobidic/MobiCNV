@@ -82,7 +82,7 @@ You can optionally provide a path to a directory containing your sample's VCFs. 
 ### Run
 
 ```bash
-$python MobiCNV.py -i path/to/input/directory/ -t [tsv|csv] [-p path/to/gene/panel/file.txt -o output_file.xlsx -v path/to/vcf/directory/]
+$python MobiCNV.py -i path/to/coverage/files/directory/ -t [tsv|csv] [-p path/to/gene/panel/file.txt -o output_file.xlsx -v path/to/vcf/directory/]
 ```
 
 ### Output
