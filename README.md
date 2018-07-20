@@ -9,6 +9,7 @@ MobiCNV is a simple python script, which runs on python > 2.5 or 3 (tested on 2.
 ```bash
 $cd /where/you/want/to/install
 $git clone https://github.com/mobidic/MobiCNV
+$cd MobiCNV
 $pip install -r requirements.txt
 ```
 
