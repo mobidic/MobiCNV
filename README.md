@@ -57,6 +57,14 @@ Intervals.bed is your ROI file. Please note it is really better to annotate your
 
 Put all your coverage files in a single directory which you can provide as input for MobiCNV.
 
+The coverage files must be named following this template:
+
+sampleID[._]coverage.(tsv|csv)
+
+Example: RS2412.coverage.csv or RS2412_coverage.tsv...
+
+The sampleID might be important as this is the string MobiCNV will use to match samples in the VCF files if provided (recommanded).
+
 ### Options
 
 #### Use a gene panel
