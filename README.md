@@ -11,11 +11,16 @@ MobiCNV requires the [xlxswriter](http://xlsxwriter.readthedocs.io/) python modu
 #pip install xlsxwriter
 ```
 
-### Optional modules
-Optionally MobiCNV can use [PyVCF](http://pyvcf.rtfd.org/)
+And also [PyVCF](http://pyvcf.rtfd.org/)
 
 ```bash
 #pip install PyVCF
+```
+
+Alternatively you can run:
+
+```bash
+#pip install -r requirements.txt
 ```
 
 ### clone MobiCNV
