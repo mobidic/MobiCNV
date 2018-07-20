@@ -17,16 +17,10 @@ $pip install -r requirements.txt
 
 If you successfully ran the requirements file (see above), you don't need the following, otherwise:
 
-MobiCNV requires the [xlxswriter](http://xlsxwriter.readthedocs.io/) python module
+MobiCNV requires the [xlxswriter](http://xlsxwriter.readthedocs.io/) , [numpy](https://pypi.org/project/numpy/) and [PyVCF](http://pyvcf.rtfd.org/) python modules:
 
 ```bash
-#pip install xlsxwriter
-```
-
-And also [PyVCF](http://pyvcf.rtfd.org/)
-
-```bash
-#pip install PyVCF
+$pip install xlsxwriter numpy PyVCF
 ```
 
 ## Inputs
