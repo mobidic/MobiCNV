@@ -9,7 +9,7 @@ import csv		# read, write csv
 import re		# regex
 import argparse	# for options
 import os		# for options
-import pprint   # print data structure
+#import pprint   # print data structure
 import numpy as np
 import math
 import xlsxwriter
