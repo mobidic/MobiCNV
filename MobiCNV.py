@@ -382,13 +382,16 @@ def main():
 			if VcfDir != False:
 				#vcf_regexp = re.compile(r''+sample+'\..*\.?vcf\.?g?z?$')
 				chr_reg = r'^chr'
-				vcf_regexp = re.compile(r'.+\.vcf\.?g?z?$')
+				#vcf_regexp = re.compile(r'.+\.vcf\.?g?z?$')
+				vcf_regexp = re.compile(r'.+\.vcf$')
 				for vcf_file in vcf_list:
 					found_sample = False
 					match_vcf = vcf_regexp.search(os.path.basename(vcf_file))
 					if match_vcf:
 						#print("Associated VCF: " + vcf_file)
-						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
+						#vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
+						#b opens in binary mode - to be modified
+						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'r'))
 						test_record = next(vcf_reader)
 						#if test_record.genotype(sample):
 						for vcf_calls in test_record.samples:
