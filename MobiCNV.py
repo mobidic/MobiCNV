@@ -80,8 +80,14 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants):
 	for sample_name in psm:	
 		for coordinate in prm :
 			#normalisation per exon
-			prm[coordinate][sample_name]["normalisedMeanOtherSamples"] = round(prm[coordinate][sample_name]["regionMeanOtherSamples"] / psm[sample_name]["totalMeanOtherSample"], 3)
-			prm[coordinate][sample_name]["normalisedRegion"] = round(float(prm[coordinate][sample_name]['rawDoc'] / psm[sample_name]["meanRawDoc"]), 3)
+			try:
+				prm[coordinate][sample_name]["normalisedMeanOtherSamples"] = round(prm[coordinate][sample_name]["regionMeanOtherSamples"] / psm[sample_name]["totalMeanOtherSample"], 3)
+			except ZeroDivisionError:
+				prm[coordinate][sample_name]["normalisedMeanOtherSamples"] = float(0)
+			try:
+				prm[coordinate][sample_name]["normalisedRegion"] = round(float(prm[coordinate][sample_name]['rawDoc'] / psm[sample_name]["meanRawDoc"]), 3)
+			except ZeroDivisionError:
+				prm[coordinate][sample_name]["normalisedRegion"] = float(0)
 	#computes final ratio
 	for coordinate in prm :
 		for sample_name in prm[coordinate]:			
@@ -388,13 +394,14 @@ def main():
 					found_sample = False
 					match_vcf = vcf_regexp.search(os.path.basename(vcf_file))
 					if match_vcf:
-						#print("Associated VCF: " + vcf_file)
+						print("Associated VCF: " + vcf_file)
 						#vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
 						#b opens in binary mode - to be modified
-						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'r'))
+						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
 						test_record = next(vcf_reader)
 						#if test_record.genotype(sample):
 						for vcf_calls in test_record.samples:
+							print(vcf_calls.sample)
 							if vcf_calls.sample == sample:
 						#if sample in test_record.samples.sample:
 								#ok our sample is here  we can read the entire vcf
