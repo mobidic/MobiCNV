@@ -86,7 +86,7 @@ $python MobiCNV.py -i path/to/coverage/files/directory/ -t [tsv|csv] [-p path/to
 
 ## Output
 
-You will soon get an Excel spreadsheet, with one summary worksheet showing remarkable events and gender predictions (if ROIs include the X chr), another woksheet for autosomes, optional supplementary worksheets for sexual chromosomes and gene panels. In addition, calls in low coverage regions are stored in a separate sheet.
+You will soon get an Excel spreadsheet, with one summary worksheet showing remarkable events and gender predictions (if ROIs include the X chr), another worksheet for autosomes, optional supplementary worksheets for sexual chromosomes and gene panels. In addition, calls in low coverage regions are stored in a separate sheet.
 The fifth column of each sheet shows the mean coverage for all samples for the considered ROI, with the following 3 colors traffic lights code:
 
 -green: mean >= 100 X
