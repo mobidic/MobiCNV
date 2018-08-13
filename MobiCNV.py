@@ -394,41 +394,45 @@ def main():
 				chr_reg = r'^chr'
 				#vcf_regexp = re.compile(r'.+\.vcf\.?g?z?$')
 				vcf_regexp = re.compile(r'.+\.vcf$')
+				vcf_gz_regexp = re.compile(r'.+\.vcf\.gz$')
 				for vcf_file in vcf_list:
 					found_sample = False
-					match_vcf = vcf_regexp.search(os.path.basename(vcf_file))
-					if match_vcf:
+					#match_vcf = vcf_regexp.search(os.path.basename(vcf_file))
+					if re.match(vcf_regexp, os.path.basename(vcf_file)):
+					#if match_vcf:
 						#print("Associated VCF: " + vcf_file)
 						#vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
 						#b opens in binary mode - to be modified
 						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'r'))
-						test_record = next(vcf_reader)
-						#if test_record.genotype(sample):
-						for vcf_calls in test_record.samples:
-							#print(vcf_calls.sample)
-							if vcf_calls.sample == sample:
-						#if sample in test_record.samples.sample:
-								#ok our sample is here  we can read the entire vcf
-								print("Associated VCF: " + vcf_file)
-								vcf_chr_semaph = False
-								for record in vcf_reader:
-									#we store only heterozygous calls or all cals on chrX to treat male dels on X chr
-									sample_call = record.genotype(sample)
-									#if sample_call.is_het == True or (record.CHROM == 'chrX' or record.CHROM == 'X'): and record.FILTER == 'PASS'
-									#FILTER PASS returns empty record.FILTER
-									if sample_call.is_het == True and not record.FILTER:
-										chrom = record.CHROM
-										if not re.match(chr_reg, chrom):
-											vcf_chr_semaph = True
-										if vcf_chr_semaph:
-											chrom = "chr" + chrom
-										position = (chrom, record.POS)
-										variants[position] = {sample: 1}
-										#print(record.CHROM + "-" + str(record.POS) + "-" + str(sample) + "-" + str(record.heterozygosity))
-								found_sample = True
-								break
-						if found_sample:
+					elif re.match(vcf_gz_regexp, os.path.basename(vcf_file)):
+						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
+					test_record = next(vcf_reader)
+					#if test_record.genotype(sample):
+					for vcf_calls in test_record.samples:
+						#print(vcf_calls.sample)
+						if vcf_calls.sample == sample:
+					#if sample in test_record.samples.sample:
+							#ok our sample is here  we can read the entire vcf
+							print("Associated VCF: " + vcf_file)
+							vcf_chr_semaph = False
+							for record in vcf_reader:
+								#we store only heterozygous calls or all cals on chrX to treat male dels on X chr
+								sample_call = record.genotype(sample)
+								#if sample_call.is_het == True or (record.CHROM == 'chrX' or record.CHROM == 'X'): and record.FILTER == 'PASS'
+								#FILTER PASS returns empty record.FILTER
+								if sample_call.is_het == True and not record.FILTER:
+									chrom = record.CHROM
+									if not re.match(chr_reg, chrom):
+										vcf_chr_semaph = True
+									if vcf_chr_semaph:
+										chrom = "chr" + chrom
+									position = (chrom, record.POS)
+									variants[position] = {sample: 1}
+									#print(record.CHROM + "-" + str(record.POS) + "-" + str(sample) + "-" + str(record.heterozygosity))
+							found_sample = True
 							break
+					if found_sample:
+						break
 			print("")
 	#############
 	
