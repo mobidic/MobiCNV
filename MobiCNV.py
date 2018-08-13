@@ -397,7 +397,7 @@ def main():
 						print("Associated VCF: " + vcf_file)
 						#vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
 						#b opens in binary mode - to be modified
-						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
+						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'r'))
 						test_record = next(vcf_reader)
 						#if test_record.genotype(sample):
 						for vcf_calls in test_record.samples:
