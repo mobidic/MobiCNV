@@ -394,14 +394,14 @@ def main():
 					found_sample = False
 					match_vcf = vcf_regexp.search(os.path.basename(vcf_file))
 					if match_vcf:
-						print("Associated VCF: " + vcf_file)
+						#print("Associated VCF: " + vcf_file)
 						#vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
 						#b opens in binary mode - to be modified
 						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'r'))
 						test_record = next(vcf_reader)
 						#if test_record.genotype(sample):
 						for vcf_calls in test_record.samples:
-							print(vcf_calls.sample)
+							#print(vcf_calls.sample)
 							if vcf_calls.sample == sample:
 						#if sample in test_record.samples.sample:
 								#ok our sample is here  we can read the entire vcf
