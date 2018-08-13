@@ -352,13 +352,17 @@ def main():
 	print("\nFiles that will be considered:\n")
 	
 	for i in file_list:
-		#### à fonctionnariser
 		regex = re.compile(r'^([^\.].+)[\._]coverage\.%s$'%ext)
 		match_file = regex.search(os.path.basename(i))
 		if match_file:
 			#for each file
 			number_of_file += 1
 			sample = match_file.group(1)
+			#filter for Illumina extensions (_S1, _S2...)
+			illumina_ext = re.compile(r'^(\w+)_S\d{1,2}$')
+			illumina_match = illumina_ext.search(sample)
+			if illumina_match:
+				sample = illumina_match.group(1)
 			print("Sample: " + sample)
 			print("Metrics file: " + i)
 			key = 1
