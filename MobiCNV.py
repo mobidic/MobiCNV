@@ -316,7 +316,10 @@ def main():
 	#Variables declaration
 	#print(args.path)
 	#sys.exit()
-	Path = args.input
+	if os.path.isdir(args.input):
+		Path = args.input
+	else:
+		sys.exit('invalid input path, please check your command')
 	Panel = args.panel
 	Type = args.type
 	OutFile = args.output
@@ -328,10 +331,13 @@ def main():
 		delim = "\t"
 	if Panel == '':
 		Panel = False
-	if VcfDir == '':
-		VcfDir = False
-	else:
+	#if VcfDir == '':
+	#	VcfDir = False
+	if os.path.isdir(VcfDir):
 		vcf_list = os.listdir(VcfDir)
+	else:
+		print 
+		VcfDir = False
 	file_list = os.listdir(Path)
 	number_of_file = 0
 	region_number = 0
@@ -390,22 +396,25 @@ def main():
 	
 			#we build vcf dict if possible chr-pos => {sample, status (1)}
 			if VcfDir != False:
-				#vcf_regexp = re.compile(r''+sample+'\..*\.?vcf\.?g?z?$')
 				chr_reg = r'^chr'
 				#vcf_regexp = re.compile(r'.+\.vcf\.?g?z?$')
-				vcf_regexp = re.compile(r'.+\.vcf$')
-				vcf_gz_regexp = re.compile(r'.+\.vcf\.gz$')
+				#vcf_regexp = re.compile(r'.+\.vcf$')
+				#vcf_gz_regexp = re.compile(r'.+\.vcf\.gz$')
 				for vcf_file in vcf_list:
 					found_sample = False
 					#match_vcf = vcf_regexp.search(os.path.basename(vcf_file))
-					if re.match(vcf_regexp, os.path.basename(vcf_file)):
+					#if re.match(vcf_regexp, os.path.basename(vcf_file)):
+					if vcf_file.lower().endswith('.vcf'):
 					#if match_vcf:
 						#print("Associated VCF: " + vcf_file)
 						#vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
 						#b opens in binary mode - to be modified
 						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'r'))
-					elif re.match(vcf_gz_regexp, os.path.basename(vcf_file)):
+					elif vcf_file.lower().endswith('.vcf.gz'):
+					#elif re.match(vcf_gz_regexp, os.path.basename(vcf_file)):
 						vcf_reader = vcf.Reader(open(VcfDir + vcf_file, 'rb'))
+					else:
+						continue
 					test_record = next(vcf_reader)
 					#if test_record.genotype(sample):
 					for vcf_calls in test_record.samples:
