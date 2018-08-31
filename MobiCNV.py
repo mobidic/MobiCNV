@@ -67,7 +67,7 @@ def exon_mean(prm):
 #############
 
 
-def compute_ratio(psm, prm, region_number, VcfDir, variants):
+def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type):
 	#loop to compute per region the mean coverage of all regions except the ROI
 	for sample_name in psm:
 		psm[sample_name]["regionMeanOtherSamplesSum"] = 0
@@ -160,7 +160,7 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants):
 					prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
 				else:
 					prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	print("HetDels: " + str(s) + " vcfed: " + str(r))
+	print(chr_type + " - HetDels: " + str(s) + " vcfed: " + str(r))
 	return (psm, prm)
 
 #############
@@ -488,11 +488,11 @@ def main():
 	# except for the pateint's current region - added to patient dict
 	
 	
-	(per_sample_metrics, per_region_metrics) = compute_ratio(per_sample_metrics, per_region_metrics, region_number, VcfDir, variants)
+	(per_sample_metrics, per_region_metrics) = compute_ratio(per_sample_metrics, per_region_metrics, region_number, VcfDir, variants, 'Autosomes')
 	if region_number_ChrX > 0:
-		(per_sample_metrics_ChrX, per_region_metrics_ChrX) = compute_ratio(per_sample_metrics_ChrX, per_region_metrics_ChrX, region_number_ChrX, VcfDir, variants)
+		(per_sample_metrics_ChrX, per_region_metrics_ChrX) = compute_ratio(per_sample_metrics_ChrX, per_region_metrics_ChrX, region_number_ChrX, VcfDir, variants, 'ChrX')
 	if region_number_ChrY > 0:
-		(per_sample_metrics_ChrY, per_region_metrics_ChrY) = compute_ratio(per_sample_metrics_ChrY, per_region_metrics_ChrY, region_number_ChrY, VcfDir, variants)
+		(per_sample_metrics_ChrY, per_region_metrics_ChrY) = compute_ratio(per_sample_metrics_ChrY, per_region_metrics_ChrY, region_number_ChrY, VcfDir, variants, 'ChrY')
 	
 	# pp.pprint(per_region_metrics)
 	#sys.exit()
