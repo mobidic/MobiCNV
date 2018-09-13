@@ -272,7 +272,7 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 					#here we check if number_of_sample > 4 and meanDoC all samples == 0 => we don't put that region in the summary sheet
 					if number_of_file <= 3:
 						reduced_regions[region] = prm[region]
-					elif prm[region][sample]["regionMeanDoc"] > 100:
+					elif prm[region][sample]["regionMeanDoc"] >= 100:
 						reduced_regions[region] = prm[region]
 					elif prm[region][sample]["regionMeanDoc"] > 0:
 						low_cov_regions[region] = prm[region]
