@@ -37,9 +37,9 @@ Your input directory will be the Data/Intensities/BaseCalls/AlignmentX of your r
 
 LRM produces inside the run root a directory called 'Alignment_X', with X being 1, 2, 3 depending on the number of times you ran the analysis. Inside Alignment_X, you will find a subfolder which atually contains the data. This subfolder is your input directory. As for MSR, the actual targets are the Sample.coverage.csv files
 
-### [Nenufaar](https://github.com/beboche/nenufaar)
+### [Nenufaar](https://github.com/beboche/nenufaar) & [MobiDL panelCapture](https://github.com/mobidic/MobiDL) workflows
 
-Nenufaar produces tsv files that can be directly used by MobiCNV. Your input directory is the output directory of the nenufaar analysis.
+Nenufaar and mobiDL panelCpature workflows produce tsv files that can be directly used by MobiCNV. Your input directory is the MobiCNVtsvs directory located in your output directory of the nenufaar/mobiDL analysis.
 
 ### Other pipelines
 
