@@ -142,19 +142,12 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type):
 					if VcfDir != False:
 						for var_pos in variants:
 							#chr must match
-							if var_pos[0] == coordinate[1]:
-								#if var_pos[0] == 'chrX' and "gender" in psm[sample_name] and psm[sample_name]["gender"] == 'female':
-								#	break
-								if int(var_pos[1]) >= int(coordinate[2]) and int(var_pos[1]) <= int(coordinate[3]):
-									for key in variants[var_pos]:
-										if key == sample_name:
-											prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-											vcf_semaph = 1
-											r+=1
-											#print(var_pos[0], coordinate[1], var_pos[1], coordinate[2], coordinate[3])
-											break
-									if vcf_semaph == 1:
-										break
+							if var_pos[0] == coordinate[1] and int(var_pos[1]) >= int(coordinate[2]) and int(var_pos[1]) <= int(coordinate[3]) and sample_name in variants[var_pos]:
+								prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+								vcf_semaph = 1
+								r+=1
+								#print(var_pos[0], coordinate[1], var_pos[1], coordinate[2], coordinate[3])
+								break
 					if vcf_semaph == 0:
 						prm[coordinate][sample_name]["MobiAdvice"] = "HetDel"
 						s+=1
@@ -168,30 +161,22 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type):
 					if VcfDir != False:
 						for var_pos in variants:
 							#chr must match
-							if var_pos[0] == coordinate[1]:
-								#if var_pos[0] == 'chrX' and "gender" in psm[sample_name] and psm[sample_name]["gender"] == 'female':
-								if int(var_pos[1]) >= int(coordinate[2]) and int(var_pos[1]) <= int(coordinate[3]):
-									#variant lying in the suspect region - check AB to decide
-									for key in variants[var_pos]:
-										if key == sample_name:
-											#print variants[var_pos][key]
-											#we consider normal copy number if a het variant is not under or over represented
-											if variants[var_pos][key] > 0.4 and variants[var_pos][key] < 0.6:
-												prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-												vcf_semaph = 1
-												t+=1
-												#print(var_pos[0], coordinate[1], var_pos[1], coordinate[2], coordinate[3])
-												break
-										if vcf_semaph == 1:
-											break
+							if var_pos[0] == coordinate[1] and int(var_pos[1]) >= int(coordinate[2]) and int(var_pos[1]) <= int(coordinate[3]) and sample_name in variants[var_pos]:
+								if variants[var_pos][sample_name]['AB'] > 0.4 and variants[var_pos][sample_name]['AB'] < 0.6:
+											#if variants[var_pos][key] > 0.4 and variants[var_pos][key] < 0.6:
+										prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
+										vcf_semaph = 1
+										t+=1
+										#print(var_pos[0] + "-" + str(var_pos[1]) + "-" + sample_name + "-" + str(variants[var_pos][sample_name]['AB']));
+										break
 					if vcf_semaph == 0:
 						prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
 						u+=1
 					#prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
 				else:
 					prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	print(chr_type + " - HetDels: " + str(s) + " vcfed: " + str(r))
-	print(chr_type + " - HetDups: " + str(u) + " vcfed: " + str(t))
+	#print(chr_type + " - HetDels: " + str(s) + " vcfed: " + str(r))
+	#print(chr_type + " - HetDups: " + str(u) + " vcfed: " + str(t))
 	return (psm, prm)
 
 #############
@@ -469,10 +454,14 @@ def main():
 									if vcf_chr_semaph:
 										chrom = "chr" + chrom
 									position = (chrom, record.POS)
-									variants[position] = {sample: 1}
+									if position not in variants:
+										#variants[position] = {sample: 1}
+										variants[position] = {sample: {"AB": 1}}
+									else:
+										variants[position].update({sample: {"AB": 1}})
 									if sample_call['AD'][0] > 0 and sample_call['AD'][1] > 0:
 										variant_ab = round(float(sample_call['AD'][1]) / (float(sample_call['AD'][0]) + float(sample_call['AD'][1])), 3)
-										variants[position] = {sample: variant_ab}
+										variants[position].update({sample: {"AB": variant_ab}})
 									#print(record.CHROM + "-" + str(record.POS) + "-" + str(sample) + "-" + str(record.heterozygosity) + "-" + str(sample_call['AD'][0]) + "-" + str(sample_call['AD']))
 							found_sample = True
 							break
@@ -482,7 +471,7 @@ def main():
 	#############
 	
 	#############
-	#pp.pprint(per_sample_metrics)
+	#pprint.pprint(variants)
 	#sys.exit()
 	
 	
