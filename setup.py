@@ -43,7 +43,7 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "mobicnv_main=mobicnv:main"
+            "mobicnv_main=mobidic_mobicnv:main"
         ],
     },
     scripts = ['scripts/MobiCNV'],
