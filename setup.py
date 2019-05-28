@@ -37,7 +37,9 @@ setuptools.setup(
         "Intended Audience :: Science/Research"
     ],
     install_requires=[
-        'pyvcf==0.6.8'
+        'pyvcf==0.6.8',
+        'numpy==1.16.3',
+        'XlsxWriter==1.1.8'
     ],
     entry_points={
         "console_scripts": [
