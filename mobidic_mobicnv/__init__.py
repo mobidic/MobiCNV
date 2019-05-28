@@ -17,18 +17,12 @@ import csv		# read, write csv
 import re		# regex
 import argparse	# for options
 import os		# for options
-#import pprint   # print data structure
 import numpy as np
 import math
 import xlsxwriter
 import vcf
-#from operator import itemgetter
 
 # ==============================================================================
-
-
-
-
 
 #funcion to build differents dicts from coverage files
 def build_dict(sample, line, region_number, prm, psm, key, chr_semaph):
