@@ -126,7 +126,7 @@ cut -f5- exac-final-cnv.gene.scores071316.txt > exac.genescore.txt
 vim exac.genescore.txt #change header name from gene_symbols to #Gene_name
 ```
 
-#### 2. Merge all annotation into master annotation file 
+#### 2. Merge all annotation into master annotation file
 
 There is 4 files to merge :
 - genename_hg19_final.txt - genomic coordinate of genes in hg19 format with cytoband
@@ -139,7 +139,7 @@ You need first to install pandas if needed.
 ```bash
 pip install pandas
 ```
-Use the merge function from pandas module to merge genename_hg19_final.txt, gene_fullxref.txt with OMIM and ExAc annotations. 
+Use the merge function from pandas module to merge genename_hg19_final.txt, gene_fullxref.txt with OMIM and ExAc annotations.
 
 ```python
 import pandas
@@ -161,7 +161,7 @@ mergeFinal.to_csv('genes_annot_hg19.txt',sep='\t')
 ```
 cut -f2- genes_annot_hg19.txt > gene_annot_hg19.bed # remove first column added by pandas.merge
 sed '1d' gene_annot_hg19.bed > gene_annot_hg19_noheader.bed # remove header
-awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "." }; 1' gene_annot_hg19_noheader.bed > gene_annot_hg19_noheader_noNA.bed # Replace empty fields with . 
+awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "." }; 1' gene_annot_hg19_noheader.bed > gene_annot_hg19_noheader_noNA.bed # Replace empty fields with .
 
 #selection useful columns:
 #Chr    Start   End     #Gene_name      cytoBand        Phenotypes      Disease_description     Function_description    Tissue_specificity(Uniprot)     del     dup     flag    pLi     pRec    pNull   P(HI)   P(rec)  RVIS_percentile
@@ -184,5 +184,3 @@ France
 [Visit our website](https://neuro-2.iurc.montp.inserm.fr/mobidic/)
 
 --------------------------------------------------------------------------------
-
-

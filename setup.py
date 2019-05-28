@@ -7,7 +7,7 @@ __author__    = 'Mobidic'
 __authors__   = ['Henri Pegeot','David Baux','Kevin Yauy','Charles Van Goethem','Thomas Guignard','Olivier Ardouin']
 __copyright__ = 'Copyright (C) 2019'
 __license__   = 'GNU General Public License v3 (GPLv3)'
-__version__   = '2.0a1'
+__version__   = '1.3a1'
 __email__     = 'henri.pegeot@ext.inserm.fr'
 __status__    = 'dev'
 
