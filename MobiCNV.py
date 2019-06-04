@@ -124,14 +124,18 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type):
 	s=0
 	t=0
 	u=0
+	v=0
+	w=0
 	for coordinate in prm :
 		#print(coordinate)
 		for sample_name in prm[coordinate]:
 			ratio = prm[coordinate][sample_name]["normalisedRatio"]
 			if ratio < hom_low:
 				prm[coordinate][sample_name]["MobiAdvice"] = "HomDel"
+				v+=1
 			elif ratio > hom_high:
 				prm[coordinate][sample_name]["MobiAdvice"] = "HomDup"
+				w+=1
 			elif ratio > het_low and ratio < het_high:
 				prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
 			elif ratio >= hom_low and ratio <= het_low:
@@ -175,8 +179,10 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type):
 					#prm[coordinate][sample_name]["MobiAdvice"] = "HetDup"
 				else:
 					prm[coordinate][sample_name]["MobiAdvice"] = "Normal"
-	#print(chr_type + " - HetDels: " + str(s) + " vcfed: " + str(r))
-	#print(chr_type + " - HetDups: " + str(u) + " vcfed: " + str(t))
+	print(chr_type + " - HetDels: " + str(s) + " vcfed: " + str(r))
+	print(chr_type + " - HomDels: " + str(v))
+	print(chr_type + " - HetDups: " + str(u) + " vcfed: " + str(t))
+	print(chr_type + " - HomDups: " + str(w))
 	return (psm, prm)
 
 #############
@@ -290,7 +296,7 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
 						reduced_regions[region] = prm[region]
 					elif prm[region][sample]["regionMeanDoc"] >= 100:
 						reduced_regions[region] = prm[region]
-					elif prm[region][sample]["regionMeanDoc"] > 0:
+					elif prm[region][sample]["regionMeanDoc"] >= 0:
 						low_cov_regions[region] = prm[region]
 			if prm[region][sample]["MobiAdvice"] == "HomDel":
 				cell_style = styles[0]
