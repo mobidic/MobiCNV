@@ -67,7 +67,7 @@ def exon_mean(prm):
 #############
 
 
-def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type):
+def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type, het_high, het_low, hom_high, hom_low):
 	#loop to compute per region the mean coverage of all regions except the ROI
 	for sample_name in psm:
 		psm[sample_name]["regionMeanOtherSamplesSum"] = 0
@@ -114,10 +114,10 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type):
 	#between 1.2 and 1.7 =>supect het del then
 	#	between 1 and 1+2.5sigma => normal
 	#	>1+2.5sigma => het dup
-	het_high = 1.3
-	het_low = 0.7
-	hom_high = 1.7
-	hom_low = 0.3
+	#het_high = 1.3
+	#het_low = 0.7
+	#hom_high = 1.7
+	#hom_low = 0.3
 	xfactor = 2
 	#dev purpose
 	r=0
@@ -333,6 +333,10 @@ def main():
 	parser.add_argument('-t', '--type', default='csv', help='Can be csv or tsv.')
 	parser.add_argument('-o', '--output', default='mobicnv.xlsx')
 	parser.add_argument('-v', '--vcf', default='', help='Path to the directory containing optional VCF files. Can be the same as coverage directory, but must be specified for the VCF search to be activated. Data can be centralised in a single VCF, or in mutliple VCFs. MobiCNV will search for samples in any present VCF based on the name of the coverage files.')
+	parser.add_argument('-hedu', '--het-dup', type=float, default='1.3', help='Threshold for heterozygous duplication ratio. Default 1.3.')
+	parser.add_argument('-hede', '--het-del', type=float, default='0.7', help='Threshold for heterozygous deletion ratio. Default 0.7.')
+	parser.add_argument('-hodu', '--hom-dup', type=float, default='1.7', help='Threshold for homozygous duplication ratio. Default 1.7.')
+	parser.add_argument('-hode', '--hom-del', type=float, default='0.3', help='Threshold for homozygous deletion ratio. Default 0.3.')
 	args = parser.parse_args()
 	
 	#Variables declaration
@@ -348,6 +352,10 @@ def main():
 	Type = args.type
 	OutFile = args.output
 	VcfDir = args.vcf
+	het_high = args.het_dup
+	het_low = args.het_del
+	hom_high = args.hom_dup
+	hom_low = args.hom_del
 	ext = "csv"
 	delim = ","
 	if Type == "tsv":
@@ -519,11 +527,11 @@ def main():
 	# except for the pateint's current region - added to patient dict
 	
 	
-	(per_sample_metrics, per_region_metrics) = compute_ratio(per_sample_metrics, per_region_metrics, region_number, VcfDir, variants, 'Autosomes')
+	(per_sample_metrics, per_region_metrics) = compute_ratio(per_sample_metrics, per_region_metrics, region_number, VcfDir, variants, 'Autosomes', het_high, het_low, hom_high, hom_low)
 	if region_number_ChrX > 0:
-		(per_sample_metrics_ChrX, per_region_metrics_ChrX) = compute_ratio(per_sample_metrics_ChrX, per_region_metrics_ChrX, region_number_ChrX, VcfDir, variants, 'ChrX')
+		(per_sample_metrics_ChrX, per_region_metrics_ChrX) = compute_ratio(per_sample_metrics_ChrX, per_region_metrics_ChrX, region_number_ChrX, VcfDir, variants, 'ChrX', het_high, het_low, hom_high, hom_low)
 	if region_number_ChrY > 0:
-		(per_sample_metrics_ChrY, per_region_metrics_ChrY) = compute_ratio(per_sample_metrics_ChrY, per_region_metrics_ChrY, region_number_ChrY, VcfDir, variants, 'ChrY')
+		(per_sample_metrics_ChrY, per_region_metrics_ChrY) = compute_ratio(per_sample_metrics_ChrY, per_region_metrics_ChrY, region_number_ChrY, VcfDir, variants, 'ChrY', het_high, het_low, hom_high, hom_low)
 	
 	# pp.pprint(per_region_metrics)
 	#sys.exit()
