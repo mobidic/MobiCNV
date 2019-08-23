@@ -473,7 +473,7 @@ def main():
 										variants[position] = {sample: {"AB": 1}}
 									else:
 										variants[position].update({sample: {"AB": 1}})
-									if sample_call['AD'][0] > 0 and sample_call['AD'][1] > 0:
+									if hasattr(sample_call, 'AD') and sample_call['AD'][0] > 0 and sample_call['AD'][1] > 0:
 										variant_ab = round(float(sample_call['AD'][1]) / (float(sample_call['AD'][0]) + float(sample_call['AD'][1])), 3)
 										variants[position].update({sample: {"AB": variant_ab}})
 									#print(record.CHROM + "-" + str(record.POS) + "-" + str(sample) + "-" + str(record.heterozygosity) + "-" + str(sample_call['AD'][0]) + "-" + str(sample_call['AD']))
