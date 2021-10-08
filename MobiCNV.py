@@ -303,7 +303,7 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
                         reduced_regions[region] = prm[region]
                     elif prm[region][sample]["regionMeanDoc"] >= 100 and prm[region][sample]["MobiAdvice"] != 'Normal':
                         reduced_regions[region] = prm[region]
-                    elif prm[region][sample]["regionMeanDoc"] <= 100:
+                    elif prm[region][sample]["regionMeanDoc"] < 100:
                         low_cov_regions[region] = prm[region]
             # LowCovSummary version
             # if quality == "global" and prm[region][sample]["MobiAdvice"] != 'Normal':
