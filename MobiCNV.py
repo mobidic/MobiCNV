@@ -113,13 +113,13 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type, het_high,
     #interpretation
     #<0.3 => hom del
     #>1.7 => hom dup
-    #between 0.7 and 1.3 => normal
-    #between 0.3 and 0.7 =>supect het del then
-    #    between 1-2sigma and 1 => normal
-    #    <1-2sigma => het del
-    #between 1.3 and 1.7 =>supect het del then
-    #    between 1 and 1+2sigma => normal
-    #    >1+2sigma => het dup
+    #betwwen 0.8 and 1.2 => normal
+    #between 0.3 and 0.8 =>supect het del then
+    #    between 1-2.5sigma and 1 => normal
+    #    <1-2.5sigma => het del
+    #between 1.2 and 1.7 =>supect het del then
+    #    between 1 and 1+2.5sigma => normal
+    #    >1+2.5sigma => het dup
     #het_high = 1.3
     #het_low = 0.7
     #hom_high = 1.7
@@ -299,12 +299,23 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
                 if region not in reduced_regions:
                     #here we optionally check whether the sample's vcf contains heterozygous (PASS) variants in the region of interest
                     #here we check if number_of_sample > 4 and meanDoC all samples == 0 => we don't put that region in the summary sheet
-                    if number_of_file <= 3:
+                    if number_of_file <= 3 and prm[region][sample]["MobiAdvice"] != 'Normal':
                         reduced_regions[region] = prm[region]
-                    elif prm[region][sample]["regionMeanDoc"] >= 100:
+                    elif prm[region][sample]["regionMeanDoc"] >= 100 and prm[region][sample]["MobiAdvice"] != 'Normal':
                         reduced_regions[region] = prm[region]
-                    elif prm[region][sample]["regionMeanDoc"] >= 0:
+                    elif prm[region][sample]["regionMeanDoc"] <= 100:
                         low_cov_regions[region] = prm[region]
+            # LowCovSummary version
+            # if quality == "global" and prm[region][sample]["MobiAdvice"] != 'Normal':
+            #     if region not in reduced_regions:
+            #         #here we optionally check whether the sample's vcf contains heterozygous (PASS) variants in the region of interest
+            #         #here we check if number_of_sample > 4 and meanDoC all samples == 0 => we don't put that region in the summary sheet
+            #         if number_of_file <= 3:
+            #             reduced_regions[region] = prm[region]
+            #         elif prm[region][sample]["regionMeanDoc"] >= 100:
+            #             reduced_regions[region] = prm[region]
+            #         elif prm[region][sample]["regionMeanDoc"] >= 0:
+            #             low_cov_regions[region] = prm[region]
             if prm[region][sample]["MobiAdvice"] == "HomDel":
                 cell_style = styles[0]
             elif prm[region][sample]["MobiAdvice"] == "HetDel":
