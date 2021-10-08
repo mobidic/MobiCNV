@@ -113,13 +113,13 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type, het_high,
     #interpretation
     #<0.3 => hom del
     #>1.7 => hom dup
-    #betwwen 0.8 and 1.2 => normal
-    #between 0.3 and 0.8 =>supect het del then
-    #    between 1-2.5sigma and 1 => normal
-    #    <1-2.5sigma => het del
-    #between 1.2 and 1.7 =>supect het del then
-    #    between 1 and 1+2.5sigma => normal
-    #    >1+2.5sigma => het dup
+    #between 0.7 and 1.3 => normal
+    #between 0.3 and 0.7 =>supect het del then
+    #    between 1-2sigma and 1 => normal
+    #    <1-2sigma => het del
+    #between 1.3 and 1.7 =>supect het del then
+    #    between 1 and 1+2sigma => normal
+    #    >1+2sigma => het dup
     #het_high = 1.3
     #het_low = 0.7
     #hom_high = 1.7
