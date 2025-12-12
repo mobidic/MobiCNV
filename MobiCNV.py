@@ -274,7 +274,7 @@ def print_worksheet(name, last_col, last_col_2_hide, workbook, prm, quality, red
                 worksheet.write(i, j+(4*number_of_file), sample + "_ratioStdev", styles[4])
                 worksheet.write(i, j+(5*number_of_file), sample + "_normalisedRatio", styles[4])
                 # enlarge visible cols
-                worksheet.set_column(i, j+(5*number_of_file), 10)
+                worksheet.set_column(j+(4*number_of_file), j+(5*number_of_file), 10)
                 j += 1
             i += 1
         # else:
