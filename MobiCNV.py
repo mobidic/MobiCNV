@@ -89,10 +89,19 @@ def compute_ratio(psm, prm, region_number, VcfDir, variants, chr_type, het_high,
                 prm[coordinate][sample_name]["normalisedMeanOtherSamples"] = round(prm[coordinate][sample_name]["regionMeanOtherSamples"] / psm[sample_name]["totalMeanOtherSample"], 3)
             except ZeroDivisionError:
                 prm[coordinate][sample_name]["normalisedMeanOtherSamples"] = float(0)
-            try:
-                prm[coordinate][sample_name]["normalisedRegion"] = round(float(prm[coordinate][sample_name]['rawDoc'] / psm[sample_name]["meanRawDoc"]), 3)
-            except ZeroDivisionError:
-                prm[coordinate][sample_name]["normalisedRegion"] = float(0)
+            # exception when only one region on chrY
+            # with very low DoC, normalised region can be 1 while sample is woman becaause rawDoc = meanRawDoc
+            # Say we need at least a rawDoc > 1
+            if chr_type == 'ChrY':
+                if prm[coordinate][sample_name]['rawDoc'] == psm[sample_name]["meanRawDoc"] and \
+                        prm[coordinate][sample_name]['rawDoc'] < 1:
+                    # woman
+                    prm[coordinate][sample_name]["normalisedRegion"] = float(0)
+            if "normalisedRegion" not in prm[coordinate][sample_name]:
+                try:
+                    prm[coordinate][sample_name]["normalisedRegion"] = round(float(prm[coordinate][sample_name]['rawDoc'] / psm[sample_name]["meanRawDoc"]), 3)
+                except ZeroDivisionError:
+                    prm[coordinate][sample_name]["normalisedRegion"] = float(0)
     # computes final ratio
     for coordinate in prm:
         for sample_name in prm[coordinate]:
