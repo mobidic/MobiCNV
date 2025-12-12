@@ -11,10 +11,8 @@ import argparse    # for options
 import os        # for options
 # import pprint   # print data structure
 import numpy as np
-# import math
 import xlsxwriter
 import vcf
-# from operator import itemgetter
 
 # ==============================================================================
 
