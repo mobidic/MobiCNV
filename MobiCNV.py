@@ -463,6 +463,7 @@ def main():
                     elif not re.match(expression, line[0]) and (line[0] == "chrY" or line[0] == "Y"):
                         (region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY, chr_semaph) = build_dict(sample, line, region_number_ChrY, per_region_metrics_ChrY, per_sample_metrics_ChrY, key, chr_semaph)
                         key += 1
+            # print(sample + " prm:" + str(len(per_region_metrics)))
 
             # we build vcf dict if possible chr-pos => {sample, status (1)}
             if VcfDir is not False:
@@ -546,7 +547,9 @@ def main():
     if region_number_ChrY > 0:
         for sample_name in per_sample_metrics_ChrY:
             per_sample_metrics_ChrY[sample_name]["meanRawDoc"] = per_sample_metrics_ChrY[sample_name]["rawDocSum"]/ region_number_ChrY
-            if (per_sample_metrics_ChrY[sample_name]["meanRawDoc"] > 1 and per_sample_metrics_ChrX[sample_name]["gender"] != "male"):
+            # if (per_sample_metrics_ChrY[sample_name]["meanRawDoc"] > 1 and per_sample_metrics_ChrX[sample_name]["gender"] != "male"):
+            # changed 20260701 we want at least Y depth > 2% autosomes depth to trigger the warning, instead of 1X mean on Y
+            if (per_sample_metrics_ChrY[sample_name]["meanRawDoc"] > 0.02 * per_sample_metrics[sample_name]["meanRawDoc"]) and (per_sample_metrics_ChrX[sample_name]["gender"] != "male"):
                 print("\nWARNING Gender inconsistancy for " + sample_name + " reads on Y chr with X ratio > 0.65\n")
                 per_sample_metrics_ChrX[sample_name]["gender"] = "male/female"
     #############
