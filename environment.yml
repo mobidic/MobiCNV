@@ -1,0 +1,11 @@
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+    #- -r requirements.txt
+    - xlsxwriter>=1.0.0
+    - PyVCF3>=1.0.0
+    - numpy>=1.0.0
